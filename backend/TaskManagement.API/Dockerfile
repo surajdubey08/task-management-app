@@ -12,22 +12,33 @@ RUN dotnet publish -c Release -o out
 
 # Use the official .NET 8 runtime image for running
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
-WORKDIR /app
 
 # Install curl for health checks
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# Copy the published app
-COPY --from=build /app/out .
+# Create a non-root user with specific UID/GID to match Kubernetes
+RUN groupadd -r -g 1001 appuser && useradd -r -u 1001 -g appuser appuser
 
-# Create logs directory
-RUN mkdir -p logs
+# Create app directory and set ownership
+WORKDIR /app
+RUN chown -R appuser:appuser /app
+
+# Create logs and data directories with proper permissions
+RUN mkdir -p /app/logs /app/data && \
+    chown -R appuser:appuser /app/logs /app/data
+
+# Copy the published app and set ownership
+COPY --from=build /app/out .
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
 
 # Expose port
 EXPOSE 80
 EXPOSE 443
 
-# Health check
+# Health check (using wget since curl might need root for some operations)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:80/health || exit 1
 

@@ -17,26 +17,12 @@ spec:
         app: taskmanagement-frontend
         tier: frontend
     spec:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
-        fsGroup: 1001
       containers:
       - name: taskmanagement-frontend
         image: taskmanagement-frontend:latest
         imagePullPolicy: Never
-        securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
-          runAsNonRoot: true
-          runAsUser: 1001
-          runAsGroup: 1001
-          capabilities:
-            drop:
-            - ALL
         ports:
-        - containerPort: 8080
+        - containerPort: 80
         env:
         - name: REACT_APP_API_URL
           valueFrom:
@@ -53,7 +39,7 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 8080
+            port: 80
           initialDelaySeconds: 30
           periodSeconds: 30
           timeoutSeconds: 10
@@ -61,7 +47,7 @@ spec:
         readinessProbe:
           httpGet:
             path: /health
-            port: 8080
+            port: 80
           initialDelaySeconds: 15
           periodSeconds: 10
           timeoutSeconds: 5
@@ -83,6 +69,6 @@ spec:
     app: taskmanagement-frontend
   ports:
   - port: 80
-    targetPort: 8080
+    targetPort: 80
     protocol: TCP
   type: LoadBalancer

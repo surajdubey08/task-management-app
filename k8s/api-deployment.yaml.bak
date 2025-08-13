@@ -17,24 +17,10 @@ spec:
         app: taskmanagement-api
         tier: backend
     spec:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1001
-        runAsGroup: 1001
-        fsGroup: 1001
       containers:
       - name: taskmanagement-api
         image: taskmanagement-api:latest
         imagePullPolicy: Never
-        securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
-          runAsNonRoot: true
-          runAsUser: 1001
-          runAsGroup: 1001
-          capabilities:
-            drop:
-            - ALL
         ports:
         - containerPort: 80
         env:

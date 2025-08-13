@@ -85,6 +85,9 @@ Deploys the application to a Kubernetes cluster.
 # Deploy to custom namespace
 .\scripts\deploy-k8s.ps1 -Namespace "my-namespace"
 
+# Use local images (sets imagePullPolicy to Never)
+.\scripts\deploy-k8s.ps1 -UseLocalImages
+
 # Custom image tag
 .\scripts\deploy-k8s.ps1 -ImageTag "v1.0.0"
 ```
@@ -99,6 +102,9 @@ Deploys the application to a Kubernetes cluster.
 
 # Deploy to custom namespace
 ./scripts/deploy-k8s.sh --namespace "my-namespace"
+
+# Use local images (sets imagePullPolicy to Never)
+./scripts/deploy-k8s.sh --use-local-images
 
 # Custom image tag
 ./scripts/deploy-k8s.sh --tag "v1.0.0"

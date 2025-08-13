@@ -3,12 +3,14 @@
 param(
     [string]$Namespace = "taskmanagement",
     [string]$ImageTag = "latest",
-    [switch]$BuildImages = $false
+    [switch]$BuildImages = $false,
+    [switch]$UseLocalImages = $false
 )
 
 Write-Host "Deploying Task Management Application to Kubernetes" -ForegroundColor Green
 Write-Host "Namespace: $Namespace" -ForegroundColor Yellow
 Write-Host "Image Tag: $ImageTag" -ForegroundColor Yellow
+Write-Host "Use Local Images: $UseLocalImages" -ForegroundColor Yellow
 
 # Function to check if kubectl is available
 function Test-Kubectl {
@@ -19,6 +21,44 @@ function Test-Kubectl {
     catch {
         Write-Error "kubectl is not available. Please install kubectl and configure it to connect to your cluster."
         return $false
+    }
+}
+
+# Function to check if Docker images exist locally
+function Test-LocalImages {
+    param(
+        [string]$ImageTag
+    )
+
+    $apiImage = "taskmanagement-api:$ImageTag"
+    $frontendImage = "taskmanagement-frontend:$ImageTag"
+
+    try {
+        docker image inspect $apiImage | Out-Null
+        docker image inspect $frontendImage | Out-Null
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+
+# Function to update imagePullPolicy in Kubernetes manifests
+function Update-ImagePullPolicy {
+    param(
+        [string]$Policy
+    )
+
+    Write-Host "Setting imagePullPolicy to $Policy in Kubernetes manifests..." -ForegroundColor Cyan
+
+    # Update API deployment
+    if (Test-Path "k8s/api-deployment.yaml") {
+        (Get-Content "k8s/api-deployment.yaml") -replace "imagePullPolicy: .*", "imagePullPolicy: $Policy" | Set-Content "k8s/api-deployment.yaml"
+    }
+
+    # Update frontend deployment
+    if (Test-Path "k8s/frontend-deployment.yaml") {
+        (Get-Content "k8s/frontend-deployment.yaml") -replace "imagePullPolicy: .*", "imagePullPolicy: $Policy" | Set-Content "k8s/frontend-deployment.yaml"
     }
 }
 
@@ -68,6 +108,75 @@ if ($BuildImages) {
     Set-Location ".."
     
     Write-Host "Docker images built successfully!" -ForegroundColor Green
+
+    # Load images into Kubernetes cluster (for local development)
+    Write-Host "Loading images into Kubernetes cluster..." -ForegroundColor Blue
+
+    # Detect Kubernetes environment and load images accordingly
+    try {
+        $minikubeStatus = minikube status 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "Detected minikube - loading images..." -ForegroundColor Cyan
+            minikube image load "taskmanagement-api:$ImageTag"
+            minikube image load "taskmanagement-frontend:$ImageTag"
+        }
+    }
+    catch {
+        try {
+            $kindClusters = kind get clusters 2>$null
+            if ($LASTEXITCODE -eq 0 -and $kindClusters -match "kind") {
+                Write-Host "Detected kind - loading images..." -ForegroundColor Cyan
+                kind load docker-image "taskmanagement-api:$ImageTag"
+                kind load docker-image "taskmanagement-frontend:$ImageTag"
+            }
+        }
+        catch {
+            try {
+                $k3dClusters = k3d cluster list 2>$null
+                if ($LASTEXITCODE -eq 0 -and $k3dClusters -match "k3s-default") {
+                    Write-Host "Detected k3d - loading images..." -ForegroundColor Cyan
+                    k3d image import "taskmanagement-api:$ImageTag"
+                    k3d image import "taskmanagement-frontend:$ImageTag"
+                }
+            }
+            catch {
+                Write-Host "Local Kubernetes cluster not detected." -ForegroundColor Yellow
+                Write-Host "Images are built locally. Make sure your cluster can access them." -ForegroundColor Yellow
+                Write-Host "For Docker Desktop Kubernetes, images should be available automatically." -ForegroundColor Yellow
+            }
+        }
+    }
+}
+
+# Determine and set imagePullPolicy
+if ($UseLocalImages) {
+    Write-Host "Using local images (UseLocalImages flag set)..." -ForegroundColor Blue
+    if (Test-LocalImages -ImageTag $ImageTag) {
+        Write-Host "Local images found. Setting imagePullPolicy to Never." -ForegroundColor Green
+        Update-ImagePullPolicy -Policy "Never"
+    }
+    else {
+        Write-Host "Error: UseLocalImages flag set but local images not found!" -ForegroundColor Red
+        Write-Host "Available images:" -ForegroundColor Yellow
+        docker images | Where-Object { $_ -match "taskmanagement" }
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "No taskmanagement images found" -ForegroundColor Yellow
+        }
+        Write-Host "Please build images first or remove UseLocalImages flag" -ForegroundColor Yellow
+        exit 1
+    }
+}
+else {
+    Write-Host "Checking for local images..." -ForegroundColor Blue
+    if (Test-LocalImages -ImageTag $ImageTag) {
+        Write-Host "Local images found. You can use -UseLocalImages flag to use them." -ForegroundColor Yellow
+        Write-Host "Currently set to pull from registry (imagePullPolicy: IfNotPresent)." -ForegroundColor Yellow
+        Update-ImagePullPolicy -Policy "IfNotPresent"
+    }
+    else {
+        Write-Host "No local images found. Will pull from registry (imagePullPolicy: Always)." -ForegroundColor Blue
+        Update-ImagePullPolicy -Policy "Always"
+    }
 }
 
 # Create namespace
