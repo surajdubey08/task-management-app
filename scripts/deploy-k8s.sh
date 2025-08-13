@@ -105,6 +105,7 @@ check_kubectl() {
     fi
     
     if ! kubectl version --client &> /dev/null; then
+    if ! kubectl version --client &> /dev/null; then
         print_color $RED "kubectl is not properly configured. Please configure it to connect to your cluster."
         exit 1
     fi
