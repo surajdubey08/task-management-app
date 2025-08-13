@@ -40,8 +40,8 @@ A comprehensive 2-tier task management application built with React frontend and
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd 3-tier-app
+   git clone https://github.com/surajdubey08/task-management-app.git
+   cd task-management-app
    ```
 
 2. **Start the application**
