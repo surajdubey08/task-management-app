@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskmanagement-frontend-deployment
+  namespace: taskmanagement
+  labels:
+    app: taskmanagement-frontend
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: taskmanagement-frontend
+  template:
+    metadata:
+      labels:
+        app: taskmanagement-frontend
+        tier: frontend
+    spec:
+      containers:
+      - name: taskmanagement-frontend
+        image: taskmanagement-frontend:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        env:
+        - name: REACT_APP_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: taskmanagement-config
+              key: REACT_APP_API_URL
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+      initContainers:
+      - name: wait-for-api
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z taskmanagement-api-service 80; do echo waiting for api; sleep 2; done;']
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: taskmanagement-frontend-service
+  namespace: taskmanagement
+  labels:
+    app: taskmanagement-frontend
+spec:
+  selector:
+    app: taskmanagement-frontend
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  type: LoadBalancer

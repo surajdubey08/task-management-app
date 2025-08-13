@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # .NET API Backend
+  api:
+    build:
+      context: ./backend/TaskManagement.API
+      dockerfile: Dockerfile
+    container_name: taskmanagement-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/taskmanagement.db
+    ports:
+      - "5000:80"
+    networks:
+      - taskmanagement-network
+    volumes:
+      - ./backend/TaskManagement.API/logs:/app/logs
+      - taskmanagement_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: taskmanagement-frontend
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000/api
+    ports:
+      - "3000:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - taskmanagement-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  taskmanagement_data:
+    driver: local
+
+networks:
+  taskmanagement-network:
+    driver: bridge
