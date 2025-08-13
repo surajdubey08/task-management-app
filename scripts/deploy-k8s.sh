@@ -49,7 +49,6 @@ while [[ $# -gt 0 ]]; do
             BUILD_IMAGES=true
             shift
             ;;
-;
         -h|--help)
             show_usage
             ;;
