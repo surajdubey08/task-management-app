@@ -49,7 +49,6 @@ while [[ $# -gt 0 ]]; do
             BUILD_IMAGES=true
             shift
             ;;
-;
         -h|--help)
             show_usage
             ;;
@@ -71,7 +70,7 @@ check_kubectl() {
         exit 1
     fi
     
-    if ! kubectl version --client --short &> /dev/null; then
+    if ! kubectl version --client &> /dev/null; then
         print_color $RED "kubectl is not properly configured. Please configure it to connect to your cluster."
         exit 1
     fi
