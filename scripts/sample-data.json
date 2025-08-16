@@ -41,33 +41,106 @@
       "email": "david.brown@company.com",
       "phone": "(555) 789-0123",
       "department": "Data Science"
+    },
+    {
+      "name": "Rachel Green",
+      "email": "rachel.green@company.com",
+      "phone": "(555) 890-1234",
+      "department": "Engineering"
+    },
+    {
+      "name": "James Wilson",
+      "email": "james.wilson@company.com",
+      "phone": "(555) 901-2345",
+      "department": "Product Management"
+    },
+    {
+      "name": "Maria Garcia",
+      "email": "maria.garcia@company.com",
+      "phone": "(555) 012-3456",
+      "department": "Design"
+    },
+    {
+      "name": "Kevin Lee",
+      "email": "kevin.lee@company.com",
+      "phone": "(555) 123-4567",
+      "department": "Engineering"
+    },
+    {
+      "name": "Amanda Taylor",
+      "email": "amanda.taylor@company.com",
+      "phone": "(555) 234-5678",
+      "department": "Marketing"
+    },
+    {
+      "name": "Robert Kim",
+      "email": "robert.kim@company.com",
+      "phone": "(555) 345-6789",
+      "department": "QA"
+    },
+    {
+      "name": "Jennifer Martinez",
+      "email": "jennifer.martinez@company.com",
+      "phone": "(555) 456-7890",
+      "department": "DevOps"
+    },
+    {
+      "name": "Thomas Anderson",
+      "email": "thomas.anderson@company.com",
+      "phone": "(555) 567-8901",
+      "department": "Data Science"
     }
   ],
   "categories": [
     {
       "name": "Frontend",
       "color": "#3B82F6",
-      "description": "Frontend development tasks"
+      "description": "Frontend development tasks including React, Vue, and Angular"
     },
     {
       "name": "Backend",
       "color": "#10B981",
-      "description": "Backend development tasks"
+      "description": "Backend development tasks including APIs, databases, and server logic"
     },
     {
       "name": "Design",
       "color": "#F59E0B",
-      "description": "UI/UX design tasks"
+      "description": "UI/UX design tasks including wireframes, prototypes, and user research"
     },
     {
       "name": "Testing",
       "color": "#EF4444",
-      "description": "Quality assurance tasks"
+      "description": "Quality assurance tasks including unit tests, integration tests, and manual testing"
     },
     {
       "name": "DevOps",
       "color": "#8B5CF6",
-      "description": "Infrastructure and deployment"
+      "description": "Infrastructure and deployment tasks including CI/CD, monitoring, and security"
+    },
+    {
+      "name": "Mobile",
+      "color": "#EC4899",
+      "description": "Mobile application development for iOS and Android platforms"
+    },
+    {
+      "name": "Documentation",
+      "color": "#6B7280",
+      "description": "Technical documentation, API docs, and user guides"
+    },
+    {
+      "name": "Research",
+      "color": "#14B8A6",
+      "description": "Market research, technology evaluation, and feasibility studies"
+    },
+    {
+      "name": "Security",
+      "color": "#DC2626",
+      "description": "Security audits, vulnerability assessments, and compliance tasks"
+    },
+    {
+      "name": "Analytics",
+      "color": "#7C3AED",
+      "description": "Data analysis, reporting, and business intelligence tasks"
     }
   ],
   "tasks": [
@@ -99,7 +172,7 @@
       "categoryIndex": 4
     },
     {
-      "title": "Write unit tests",
+      "title": "Write unit tests for API",
       "description": "Add comprehensive unit tests for API endpoints with coverage reporting and automated testing",
       "status": 1,
       "priority": 1,
@@ -150,11 +223,11 @@
       "priority": 0,
       "dueDate": "2025-01-28T12:00:00Z",
       "userIndex": 1,
-      "categoryIndex": 1
+      "categoryIndex": 6
     },
     {
-      "title": "Performance monitoring",
-      "description": "Setup application performance monitoring with alerts and dashboards",
+      "title": "Performance monitoring setup",
+      "description": "Setup application performance monitoring with alerts and dashboards using APM tools",
       "status": 0,
       "priority": 1,
       "dueDate": "2025-02-01T09:00:00Z",
@@ -167,8 +240,8 @@
       "status": 0,
       "priority": 2,
       "dueDate": "2025-02-05T14:00:00Z",
-      "userIndex": 4,
-      "categoryIndex": 3
+      "userIndex": 12,
+      "categoryIndex": 8
     },
     {
       "title": "Dark mode implementation",
@@ -185,7 +258,7 @@
       "status": 0,
       "priority": 2,
       "dueDate": "2025-02-10T11:00:00Z",
-      "userIndex": 5,
+      "userIndex": 13,
       "categoryIndex": 4
     },
     {
@@ -205,6 +278,303 @@
       "dueDate": "2025-02-20T10:00:00Z",
       "userIndex": 3,
       "categoryIndex": 2
+    },
+    {
+      "title": "Mobile app prototype",
+      "description": "Create native mobile app prototype for iOS and Android using React Native",
+      "status": 0,
+      "priority": 1,
+      "dueDate": "2025-02-25T16:00:00Z",
+      "userIndex": 7,
+      "categoryIndex": 5
+    },
+    {
+      "title": "Database migration scripts",
+      "description": "Write database migration scripts for schema updates and data transformations",
+      "status": 1,
+      "priority": 2,
+      "dueDate": "2025-01-30T11:00:00Z",
+      "userIndex": 10,
+      "categoryIndex": 1
+    },
+    {
+      "title": "Load testing implementation",
+      "description": "Implement comprehensive load testing to ensure application can handle expected traffic",
+      "status": 0,
+      "priority": 1,
+      "dueDate": "2025-02-08T14:00:00Z",
+      "userIndex": 4,
+      "categoryIndex": 3
+    },
+    {
+      "title": "User analytics dashboard",
+      "description": "Build analytics dashboard to track user behavior and application usage patterns",
+      "status": 1,
+      "priority": 1,
+      "dueDate": "2025-02-12T10:00:00Z",
+      "userIndex": 14,
+      "categoryIndex": 9
+    },
+    {
+      "title": "Accessibility compliance",
+      "description": "Ensure application meets WCAG 2.1 AA accessibility standards for all users",
+      "status": 0,
+      "priority": 1,
+      "dueDate": "2025-02-18T15:00:00Z",
+      "userIndex": 9,
+      "categoryIndex": 2
+    },
+    {
+      "title": "Redis caching layer",
+      "description": "Implement Redis caching layer to improve application performance and reduce database load",
+      "status": 1,
+      "priority": 2,
+      "dueDate": "2025-01-28T09:00:00Z",
+      "userIndex": 0,
+      "categoryIndex": 1
+    },
+    {
+      "title": "Component library creation",
+      "description": "Build reusable React component library with Storybook documentation",
+      "status": 2,
+      "priority": 1,
+      "dueDate": "2025-01-20T16:00:00Z",
+      "userIndex": 7,
+      "categoryIndex": 0
+    },
+    {
+      "title": "Microservices architecture research",
+      "description": "Research and evaluate microservices architecture for future scalability",
+      "status": 0,
+      "priority": 0,
+      "dueDate": "2025-03-01T12:00:00Z",
+      "userIndex": 8,
+      "categoryIndex": 7
+    },
+    {
+      "title": "GraphQL API implementation",
+      "description": "Implement GraphQL API alongside REST API for flexible data querying",
+      "status": 0,
+      "priority": 1,
+      "dueDate": "2025-02-28T14:00:00Z",
+      "userIndex": 10,
+      "categoryIndex": 1
+    },
+    {
+      "title": "Automated testing suite",
+      "description": "Create comprehensive automated testing suite including E2E tests with Cypress",
+      "status": 1,
+      "priority": 2,
+      "dueDate": "2025-02-05T11:00:00Z",
+      "userIndex": 12,
+      "categoryIndex": 3
+    },
+    {
+      "title": "Kubernetes deployment",
+      "description": "Deploy application to Kubernetes cluster with auto-scaling and health checks",
+      "status": 0,
+      "priority": 2,
+      "dueDate": "2025-03-05T10:00:00Z",
+      "userIndex": 13,
+      "categoryIndex": 4
+    },
+    {
+      "title": "Social media integration",
+      "description": "Integrate social media sharing capabilities for tasks and achievements",
+      "status": 0,
+      "priority": 0,
+      "dueDate": "2025-03-10T14:00:00Z",
+      "userIndex": 11,
+      "categoryIndex": 0
+    },
+    {
+      "title": "Multi-language support",
+      "description": "Implement internationalization (i18n) support for multiple languages",
+      "status": 1,
+      "priority": 1,
+      "dueDate": "2025-02-22T16:00:00Z",
+      "userIndex": 7,
+      "categoryIndex": 0
+    },
+    {
+      "title": "Data export functionality",
+      "description": "Build data export features for CSV, PDF, and Excel formats",
+      "status": 2,
+      "priority": 1,
+      "dueDate": "2025-02-15T12:00:00Z",
+      "userIndex": 14,
+      "categoryIndex": 1
+    },
+    {
+      "title": "Push notification service",
+      "description": "Implement push notifications for mobile devices using Firebase",
+      "status": 0,
+      "priority": 1,
+      "dueDate": "2025-03-15T11:00:00Z",
+      "userIndex": 7,
+      "categoryIndex": 5
+    },
+    {
+      "title": "Advanced search filters",
+      "description": "Create advanced search and filtering capabilities with faceted search",
+      "status": 1,
+      "priority": 1,
+      "dueDate": "2025-02-28T15:00:00Z",
+      "userIndex": 0,
+      "categoryIndex": 0
+    },
+    {
+      "title": "Team collaboration features",
+      "description": "Add team collaboration features including comments, mentions, and file sharing",
+      "status": 0,
+      "priority": 2,
+      "dueDate": "2025-03-20T13:00:00Z",
+      "userIndex": 1,
+      "categoryIndex": 1
+    },
+    {
+      "title": "Compliance documentation",
+      "description": "Create GDPR and SOC 2 compliance documentation and procedures",
+      "status": 1,
+      "priority": 2,
+      "dueDate": "2025-02-25T10:00:00Z",
+      "userIndex": 8,
+      "categoryIndex": 6
+    },
+    {
+      "title": "Machine learning recommendations",
+      "description": "Implement ML-based task prioritization and deadline prediction system",
+      "status": 0,
+      "priority": 0,
+      "dueDate": "2025-04-01T14:00:00Z",
+      "userIndex": 14,
+      "categoryIndex": 9
+    },
+    {
+      "title": "Offline mode support",
+      "description": "Add offline functionality with data synchronization when connection is restored",
+      "status": 0,
+      "priority": 1,
+      "dueDate": "2025-03-25T16:00:00Z",
+      "userIndex": 7,
+      "categoryIndex": 5
+    },
+    {
+      "title": "Custom dashboard widgets",
+      "description": "Allow users to create custom dashboard widgets and layouts",
+      "status": 1,
+      "priority": 1,
+      "dueDate": "2025-03-08T12:00:00Z",
+      "userIndex": 9,
+      "categoryIndex": 0
+    },
+    {
+      "title": "Integration testing framework",
+      "description": "Set up integration testing framework for API and database interactions",
+      "status": 2,
+      "priority": 2,
+      "dueDate": "2025-02-10T09:00:00Z",
+      "userIndex": 4,
+      "categoryIndex": 3
+    },
+    {
+      "title": "Disaster recovery plan",
+      "description": "Develop and test comprehensive disaster recovery and business continuity plan",
+      "status": 0,
+      "priority": 2,
+      "dueDate": "2025-03-30T11:00:00Z",
+      "userIndex": 13,
+      "categoryIndex": 4
+    },
+    {
+      "title": "User feedback system",
+      "description": "Implement in-app feedback system with rating and suggestion collection",
+      "status": 1,
+      "priority": 1,
+      "dueDate": "2025-03-12T15:00:00Z",
+      "userIndex": 3,
+      "categoryIndex": 2
+    },
+    {
+      "title": "Third-party API integrations",
+      "description": "Integrate with popular tools like Slack, Microsoft Teams, and Google Workspace",
+      "status": 0,
+      "priority": 1,
+      "dueDate": "2025-04-05T13:00:00Z",
+      "userIndex": 10,
+      "categoryIndex": 1
+    },
+    {
+      "title": "Performance optimization audit",
+      "description": "Conduct comprehensive performance audit and implement optimization strategies",
+      "status": 1,
+      "priority": 2,
+      "dueDate": "2025-03-18T10:00:00Z",
+      "userIndex": 0,
+      "categoryIndex": 1
+    },
+    {
+      "title": "Brand identity refresh",
+      "description": "Update application branding, logo, and visual identity across all platforms",
+      "status": 2,
+      "priority": 0,
+      "dueDate": "2025-02-28T16:00:00Z",
+      "userIndex": 9,
+      "categoryIndex": 2
+    },
+    {
+      "title": "Automated deployment scripts",
+      "description": "Create automated deployment scripts for staging and production environments",
+      "status": 1,
+      "priority": 2,
+      "dueDate": "2025-02-20T14:00:00Z",
+      "userIndex": 5,
+      "categoryIndex": 4
+    },
+    {
+      "title": "Code quality standards",
+      "description": "Establish code quality standards and implement automated code review tools",
+      "status": 2,
+      "priority": 1,
+      "dueDate": "2025-02-08T11:00:00Z",
+      "userIndex": 8,
+      "categoryIndex": 6
+    },
+    {
+      "title": "Customer support portal",
+      "description": "Build customer support portal with ticketing system and knowledge base",
+      "status": 0,
+      "priority": 1,
+      "dueDate": "2025-04-10T12:00:00Z",
+      "userIndex": 11,
+      "categoryIndex": 0
+    },
+    {
+      "title": "Blockchain integration research",
+      "description": "Research blockchain integration possibilities for task verification and rewards",
+      "status": 0,
+      "priority": 0,
+      "dueDate": "2025-05-01T15:00:00Z",
+      "userIndex": 14,
+      "categoryIndex": 7
+    },
+    {
+      "title": "Voice command interface",
+      "description": "Implement voice command interface for hands-free task management",
+      "status": 0,
+      "priority": 0,
+      "dueDate": "2025-04-15T13:00:00Z",
+      "userIndex": 7,
+      "categoryIndex": 5
+    },
+    {
+      "title": "Advanced reporting system",
+      "description": "Create advanced reporting system with custom reports and data visualization",
+      "status": 1,
+      "priority": 1,
+      "dueDate": "2025-03-22T10:00:00Z",
+      "userIndex": 14,
+      "categoryIndex": 9
     }
   ]
 }
