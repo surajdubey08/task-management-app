@@ -24,8 +24,8 @@ spec:
         fsGroup: 1001
       containers:
       - name: taskmanagement-frontend
-        image: taskmanagement-frontend:latest
-        imagePullPolicy: Never
+        image: sre-citizenuser-jfp-west-virtual-docker-prod001.artifacts-west.pwc.com/sre-poc-app/taskmanagement-frontend:latest
+        imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: false
@@ -66,6 +66,16 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: default.conf
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+      imagePullSecrets:
+      - name: sre-jfrog-artifactory
       initContainers:
       - name: wait-for-api
         image: busybox:1.35

@@ -8,6 +8,9 @@ using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Kestrel to use non-privileged port for non-root execution
+builder.WebHost.UseUrls("http://0.0.0.0:8080");
+
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)

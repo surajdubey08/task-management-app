@@ -9,17 +9,17 @@ services:
     container_name: taskmanagement-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Data Source=/app/data/taskmanagement.db
     ports:
-      - "5000:80"
+      - "5000:8080"
     networks:
       - taskmanagement-network
     volumes:
       - ./backend/TaskManagement.API/logs:/app/logs
       - taskmanagement_data:/app/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3

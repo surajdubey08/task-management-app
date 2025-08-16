@@ -24,8 +24,8 @@ spec:
         fsGroup: 1001
       containers:
       - name: taskmanagement-api
-        image: taskmanagement-api:latest
-        imagePullPolicy: Never
+        image: sre-citizenuser-jfp-west-virtual-docker-prod001.artifacts-west.pwc.com/sre-poc-app/taskmanagement-api:latest
+        imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: false
@@ -36,7 +36,7 @@ spec:
             drop:
             - ALL
         ports:
-        - containerPort: 80
+        - containerPort: 8080
         env:
         - name: ASPNETCORE_ENVIRONMENT
           valueFrom:
@@ -63,7 +63,7 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 80
+            port: 8080
           initialDelaySeconds: 30
           periodSeconds: 30
           timeoutSeconds: 10
@@ -71,7 +71,7 @@ spec:
         readinessProbe:
           httpGet:
             path: /health
-            port: 80
+            port: 8080
           initialDelaySeconds: 15
           periodSeconds: 10
           timeoutSeconds: 5
@@ -79,6 +79,8 @@ spec:
         volumeMounts:
         - name: logs-volume
           mountPath: /app/logs
+      imagePullSecrets:
+      - name: sre-jfrog-artifactory
       volumes:
       - name: logs-volume
         emptyDir: {}
@@ -95,6 +97,6 @@ spec:
     app: taskmanagement-api
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: 8080
     protocol: TCP
   type: ClusterIP

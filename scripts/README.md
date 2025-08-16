@@ -4,6 +4,33 @@ This directory contains utility scripts for building, deploying, and managing th
 
 ## Available Scripts
 
+### SRE POC Registry
+
+#### `build-image-for-sre-poc.ps1` / `build-image-for-sre-poc.sh`
+Builds, tags, and pushes Docker images to the SRE POC registry.
+
+**Prerequisites:**
+- Docker must be running
+- Must be logged in to registry: `docker login sre-citizenuser-jfp-west-virtual-docker-prod001.artifacts-west.pwc.com`
+
+**PowerShell:**
+```powershell
+.\scripts\build-image-for-sre-poc.ps1
+.\scripts\build-image-for-sre-poc.ps1 -SkipCleanup
+.\scripts\build-image-for-sre-poc.ps1 -Help
+```
+
+**Bash:**
+```bash
+./scripts/build-image-for-sre-poc.sh
+```
+
+**What it does:**
+- Cleans up existing Docker resources (optional)
+- Builds fresh images for API and frontend
+- Tags images with SRE POC registry URLs
+- Pushes images to the registry
+
 ### Setup and Development
 
 #### `setup-dev.ps1` / `setup-dev.sh`

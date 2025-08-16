@@ -34,8 +34,8 @@ RUN mkdir -p /var/cache/nginx /var/log/nginx /etc/nginx/conf.d /usr/share/nginx/
 RUN touch /var/run/nginx.pid && \
     chown appuser:appuser /var/run/nginx.pid
 
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy custom nginx config (Docker Compose version)
+COPY nginx-docker.conf /etc/nginx/conf.d/default.conf
 RUN chown appuser:appuser /etc/nginx/conf.d/default.conf
 
 # Copy built app
