@@ -22,13 +22,42 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        // Suppress automatic model validation responses for better error handling
+        options.SuppressModelStateInvalidFilter = false;
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Database
+// Performance optimizations
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+});
+
+builder.Services.AddMemoryCache();
+builder.Services.AddResponseCaching();
+
+// Database with performance optimizations
 builder.Services.AddDbContext<TaskManagementContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+    // Performance optimizations
+    if (builder.Environment.IsProduction())
+    {
+        options.EnableSensitiveDataLogging(false);
+        options.EnableDetailedErrors(false);
+    }
+    else
+    {
+        options.EnableSensitiveDataLogging(true);
+        options.EnableDetailedErrors(true);
+    }
+});
 
 // AutoMapper
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
@@ -39,7 +68,6 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITaskCommentService, TaskCommentService>();
 builder.Services.AddScoped<ITaskActivityService, TaskActivityService>();
-
 
 // Repositories
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
@@ -71,6 +99,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
+
+app.UseResponseCompression();
+app.UseResponseCaching();
 
 app.UseHttpsRedirection();
 

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Link, useLocation } from 'react-router-dom';
-import { Plus, Filter, Search, Grid, List, Calendar, LayoutGrid } from 'lucide-react';
+import { Plus, Filter, Search, List, Calendar, LayoutGrid } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { tasksApi, usersApi, categoriesApi } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -46,17 +46,24 @@ const Tasks = () => {
 
   const { data: tasks, isLoading, error, refetch } = useQuery(
     ['tasks', filters],
-    () => {
+    async () => {
       const params = {};
       if (filters.status !== '') params.status = parseInt(filters.status);
       if (filters.userId) params.userId = parseInt(filters.userId);
       if (filters.categoryId) params.categoryId = parseInt(filters.categoryId);
-      return tasksApi.getAll(params).then(res => res.data);
+      const response = await tasksApi.getAll(params);
+      return response.data;
     }
   );
 
-  const { data: users } = useQuery('users', () => usersApi.getAll().then(res => res.data));
-  const { data: categories } = useQuery('categories', () => categoriesApi.getAll().then(res => res.data));
+  const { data: users } = useQuery('users', async () => {
+    const response = await usersApi.getAll();
+    return response.data;
+  });
+  const { data: categories } = useQuery('categories', async () => {
+    const response = await categoriesApi.getAll();
+    return response.data;
+  });
 
   const deleteTaskMutation = useMutation(
     (taskId) => tasksApi.delete(taskId),
@@ -66,11 +73,6 @@ const Tasks = () => {
         toast.success('Task deleted successfully');
       },
       onError: (error) => {
-        console.error('Delete task error:', error);
-        console.error('Error response:', error.response);
-        console.error('Error status:', error.response?.status);
-        console.error('Error data:', error.response?.data);
-
         const errorMessage = error.response?.data?.message ||
                            error.response?.data ||
                            error.message ||

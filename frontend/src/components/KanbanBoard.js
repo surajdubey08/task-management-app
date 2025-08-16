@@ -59,8 +59,6 @@ const KanbanBoard = () => {
         // toast.success('Task updated successfully');
       },
       onError: (error) => {
-        console.error('Task update failed:', error);
-
         // Revert optimistic update on backend failure
         refetch();
 

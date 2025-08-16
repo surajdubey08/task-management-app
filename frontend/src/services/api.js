@@ -9,26 +9,20 @@ const api = axios.create({
   },
 });
 
-// Request interceptor for logging
+// Request interceptor for error handling
 api.interceptors.request.use(
-  (config) => {
-    console.log(`Making ${config.method?.toUpperCase()} request to ${config.url}`);
-    return config;
-  },
-  (error) => {
-    console.error('Request error:', error);
-    return Promise.reject(error);
-  }
+  (config) => config,
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor for logging
+// Response interceptor for error handling
 api.interceptors.response.use(
-  (response) => {
-    console.log(`Response from ${response.config.url}:`, response.status);
-    return response;
-  },
+  (response) => response,
   (error) => {
-    console.error('Response error:', error.response?.data || error.message);
+    // Only log errors in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('API Error:', error.response?.data || error.message);
+    }
     return Promise.reject(error);
   }
 );
@@ -39,17 +33,7 @@ export const tasksApi = {
   getById: (id) => api.get(`/tasks/${id}`),
   create: (data) => api.post('/tasks', data),
   update: (id, data) => api.put(`/tasks/${id}`, data),
-  delete: async (id) => {
-    try {
-      console.log(`Attempting to delete task ${id}`);
-      const response = await api.delete(`/tasks/${id}`);
-      console.log(`Delete response:`, response);
-      return response;
-    } catch (error) {
-      console.error(`Delete task ${id} failed:`, error);
-      throw error;
-    }
-  },
+  delete: (id) => api.delete(`/tasks/${id}`),
 };
 
 // Users API

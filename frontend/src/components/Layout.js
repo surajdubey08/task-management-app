@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Home,
@@ -15,16 +15,16 @@ import ThemeToggle from './ThemeToggle';
 
 const Layout = ({ children }) => {
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = React.useState(false);
-  const [isDesktop, setIsDesktop] = React.useState(window.innerWidth >= 1024);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
   // Close sidebar when route changes
-  React.useEffect(() => {
+  useEffect(() => {
     setSidebarOpen(false);
   }, [location.pathname]);
 
   // Handle window resize
-  React.useEffect(() => {
+  useEffect(() => {
     const handleResize = () => {
       setIsDesktop(window.innerWidth >= 1024);
       // Close mobile sidebar when switching to desktop
@@ -38,7 +38,7 @@ const Layout = ({ children }) => {
   }, []);
 
   // Prevent body scroll when mobile sidebar is open
-  React.useEffect(() => {
+  useEffect(() => {
     if (sidebarOpen && !isDesktop) {
       document.body.classList.add('sidebar-open');
     } else {

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import {
@@ -19,18 +19,27 @@ import ErrorMessage from '../components/ErrorMessage';
 const Dashboard = () => {
   const { data: tasks, isLoading: tasksLoading, error: tasksError } = useQuery(
     'dashboard-tasks',
-    () => tasksApi.getAll().then(res => res.data)
+    async () => {
+      const response = await tasksApi.getAll();
+      return response.data;
+    }
   );
 
   const { data: users, isLoading: usersLoading } = useQuery(
     'dashboard-users',
-    () => usersApi.getAll().then(res => res.data)
+    async () => {
+      const response = await usersApi.getAll();
+      return response.data;
+    }
   );
 
   // eslint-disable-next-line no-unused-vars
   const { data: categories, isLoading: categoriesLoading } = useQuery(
     'dashboard-categories',
-    () => categoriesApi.getAll().then(res => res.data)
+    async () => {
+      const response = await categoriesApi.getAll();
+      return response.data;
+    }
   );
 
   if (tasksLoading || usersLoading || categoriesLoading) {

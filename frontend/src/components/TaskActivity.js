@@ -1,4 +1,3 @@
-import React from 'react';
 import { useQuery } from 'react-query';
 import { format } from 'date-fns';
 import { 
@@ -18,7 +17,10 @@ import { taskActivitiesApi } from '../services/api';
 const TaskActivity = ({ taskId }) => {
   const { data: activities, isLoading, error } = useQuery(
     ['taskActivities', taskId],
-    () => taskActivitiesApi.getByTaskId(taskId).then(res => res.data),
+    async () => {
+      const response = await taskActivitiesApi.getByTaskId(taskId);
+      return response.data;
+    },
     {
       enabled: !!taskId,
     }

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Link } from 'react-router-dom';
 import { Plus, Edit, Trash2, Tag } from 'lucide-react';
@@ -12,7 +12,10 @@ const Categories = () => {
 
   const { data: categories, isLoading, error, refetch } = useQuery(
     'categories',
-    () => categoriesApi.getAll().then(res => res.data)
+    async () => {
+      const response = await categoriesApi.getAll();
+      return response.data;
+    }
   );
 
   const deleteCategoryMutation = useMutation(

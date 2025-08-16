@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Droppable } from 'react-beautiful-dnd';
 import { Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';

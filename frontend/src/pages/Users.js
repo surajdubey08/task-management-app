@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Link } from 'react-router-dom';
 import { Plus, Edit, Trash2, Mail, Phone, Building } from 'lucide-react';
@@ -12,7 +12,10 @@ const Users = () => {
 
   const { data: users, isLoading, error, refetch } = useQuery(
     'users',
-    () => usersApi.getAll().then(res => res.data)
+    async () => {
+      const response = await usersApi.getAll();
+      return response.data;
+    }
   );
 
   const deleteUserMutation = useMutation(

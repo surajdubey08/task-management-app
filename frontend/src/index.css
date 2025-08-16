@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Clean toast styling */
+/* Toast styling */
 .Toastify__toast--error {
   background: #fee2e2 !important;
   border: 1px solid #fca5a5 !important;
@@ -11,20 +11,15 @@
   line-height: 1.4 !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  animation: slideInDown 0.3s ease-out;
 }
 
-/* Center positioning for better visibility */
 .Toastify__toast-container--top-center {
   top: 20px !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
   width: auto !important;
   max-width: 500px !important;
-}
-
-/* Clean animations */
-.Toastify__toast--error {
-  animation: slideInDown 0.3s ease-out;
 }
 
 @keyframes slideInDown {
@@ -403,32 +398,7 @@ code {
   margin-bottom: 1rem;
 }
 
-.grid {
-  display: grid;
-  gap: 1rem;
-}
 
-.grid-cols-1 {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-}
-
-.grid-cols-2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.grid-cols-3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-@media (min-width: 768px) {
-  .md\:grid-cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  
-  .md\:grid-cols-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
 
 .flex {
   display: flex;
@@ -583,21 +553,7 @@ code {
   border-radius: 1rem;
 }
 
-.shadow-sm {
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-}
 
-.shadow-md {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.shadow-lg {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-.shadow-xl {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
 
 .hover\:shadow-lg:hover {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -928,33 +884,9 @@ code {
   -webkit-line-clamp: 3;
 }
 
-/* Spacing utilities */
-.space-y-2 > * + * {
-  margin-top: 0.5rem;
-}
 
-.space-y-3 > * + * {
-  margin-top: 0.75rem;
-}
 
-.space-y-4 > * + * {
-  margin-top: 1rem;
-}
 
-.space-y-6 > * + * {
-  margin-top: 1.5rem;
-}
-
-.space-y-8 > * + * {
-  margin-top: 2rem;
-}
-
-/* Responsive grid utilities */
-@media (min-width: 1024px) {
-  .lg\:grid-cols-4 {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
 
 /* Enhanced button styles */
 .btn-sm {
@@ -967,19 +899,7 @@ code {
   font-size: 1rem;
 }
 
-/* Backdrop blur utilities */
-.backdrop-blur-sm {
-  backdrop-filter: blur(4px);
-}
 
-.backdrop-blur-md {
-  backdrop-filter: blur(12px);
-}
-
-/* Enhanced shadows */
-.shadow-2xl {
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
 
 .hover\:shadow-2xl:hover {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);

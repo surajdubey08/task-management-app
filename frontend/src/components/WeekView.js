@@ -45,8 +45,7 @@ const WeekView = ({ view, setView }) => {
         toast.success('Task deleted successfully');
       },
       onError: (error) => {
-        console.error('Task deletion failed:', error);
-        toast.error('Failed to delete task');
+        toast.error(error.response?.data?.message || 'Failed to delete task');
       },
     }
   );
