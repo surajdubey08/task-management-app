@@ -1,0 +1,210 @@
+{
+  "users": [
+    {
+      "name": "John Smith",
+      "email": "john.smith@company.com",
+      "phone": "(555) 123-4567",
+      "department": "Engineering"
+    },
+    {
+      "name": "Sarah Johnson",
+      "email": "sarah.johnson@company.com",
+      "phone": "(555) 234-5678",
+      "department": "Product Management"
+    },
+    {
+      "name": "Mike Chen",
+      "email": "mike.chen@company.com",
+      "phone": "(555) 345-6789",
+      "department": "Design"
+    },
+    {
+      "name": "Emily Davis",
+      "email": "emily.davis@company.com",
+      "phone": "(555) 456-7890",
+      "department": "Marketing"
+    },
+    {
+      "name": "Alex Rodriguez",
+      "email": "alex.rodriguez@company.com",
+      "phone": "(555) 567-8901",
+      "department": "QA"
+    },
+    {
+      "name": "Lisa Wang",
+      "email": "lisa.wang@company.com",
+      "phone": "(555) 678-9012",
+      "department": "DevOps"
+    },
+    {
+      "name": "David Brown",
+      "email": "david.brown@company.com",
+      "phone": "(555) 789-0123",
+      "department": "Data Science"
+    }
+  ],
+  "categories": [
+    {
+      "name": "Frontend",
+      "color": "#3B82F6",
+      "description": "Frontend development tasks"
+    },
+    {
+      "name": "Backend",
+      "color": "#10B981",
+      "description": "Backend development tasks"
+    },
+    {
+      "name": "Design",
+      "color": "#F59E0B",
+      "description": "UI/UX design tasks"
+    },
+    {
+      "name": "Testing",
+      "color": "#EF4444",
+      "description": "Quality assurance tasks"
+    },
+    {
+      "name": "DevOps",
+      "color": "#8B5CF6",
+      "description": "Infrastructure and deployment"
+    }
+  ],
+  "tasks": [
+    {
+      "title": "Implement user authentication",
+      "description": "Add JWT-based authentication to the application with secure token handling and refresh mechanisms",
+      "status": 1,
+      "priority": 2,
+      "dueDate": "2025-01-15T10:00:00Z",
+      "userIndex": 0,
+      "categoryIndex": 1
+    },
+    {
+      "title": "Design dashboard wireframes",
+      "description": "Create comprehensive wireframes for the main dashboard interface including mobile responsiveness",
+      "status": 2,
+      "priority": 1,
+      "dueDate": "2025-01-12T14:00:00Z",
+      "userIndex": 2,
+      "categoryIndex": 2
+    },
+    {
+      "title": "Setup CI/CD pipeline",
+      "description": "Configure automated deployment pipeline with Docker, testing, and production deployment stages",
+      "status": 0,
+      "priority": 2,
+      "dueDate": "2025-01-20T09:00:00Z",
+      "userIndex": 5,
+      "categoryIndex": 4
+    },
+    {
+      "title": "Write unit tests",
+      "description": "Add comprehensive unit tests for API endpoints with coverage reporting and automated testing",
+      "status": 1,
+      "priority": 1,
+      "dueDate": "2025-01-18T16:00:00Z",
+      "userIndex": 4,
+      "categoryIndex": 3
+    },
+    {
+      "title": "Optimize database queries",
+      "description": "Improve performance of slow database queries and implement proper indexing strategies",
+      "status": 0,
+      "priority": 2,
+      "dueDate": "2025-01-25T11:00:00Z",
+      "userIndex": 0,
+      "categoryIndex": 1
+    },
+    {
+      "title": "Create responsive mobile layout",
+      "description": "Ensure application works seamlessly on mobile devices with touch-friendly interface",
+      "status": 1,
+      "priority": 1,
+      "dueDate": "2025-01-22T13:00:00Z",
+      "userIndex": 2,
+      "categoryIndex": 0
+    },
+    {
+      "title": "Implement real-time notifications",
+      "description": "Add WebSocket-based real-time notifications for task updates and user collaboration",
+      "status": 0,
+      "priority": 0,
+      "dueDate": "2025-01-30T15:00:00Z",
+      "userIndex": 1,
+      "categoryIndex": 1
+    },
+    {
+      "title": "User experience research",
+      "description": "Conduct user interviews and usability testing to improve application workflow",
+      "status": 2,
+      "priority": 1,
+      "dueDate": "2025-01-10T10:00:00Z",
+      "userIndex": 3,
+      "categoryIndex": 2
+    },
+    {
+      "title": "API documentation",
+      "description": "Create comprehensive API documentation with examples and integration guides",
+      "status": 1,
+      "priority": 0,
+      "dueDate": "2025-01-28T12:00:00Z",
+      "userIndex": 1,
+      "categoryIndex": 1
+    },
+    {
+      "title": "Performance monitoring",
+      "description": "Setup application performance monitoring with alerts and dashboards",
+      "status": 0,
+      "priority": 1,
+      "dueDate": "2025-02-01T09:00:00Z",
+      "userIndex": 5,
+      "categoryIndex": 4
+    },
+    {
+      "title": "Security audit",
+      "description": "Conduct comprehensive security review and penetration testing of the application",
+      "status": 0,
+      "priority": 2,
+      "dueDate": "2025-02-05T14:00:00Z",
+      "userIndex": 4,
+      "categoryIndex": 3
+    },
+    {
+      "title": "Dark mode implementation",
+      "description": "Add dark mode support to the application with user preference persistence",
+      "status": 3,
+      "priority": 0,
+      "dueDate": "2025-01-08T16:00:00Z",
+      "userIndex": 2,
+      "categoryIndex": 0
+    },
+    {
+      "title": "Data backup strategy",
+      "description": "Implement automated data backup and recovery procedures for production environment",
+      "status": 0,
+      "priority": 2,
+      "dueDate": "2025-02-10T11:00:00Z",
+      "userIndex": 5,
+      "categoryIndex": 4
+    },
+    {
+      "title": "Email notification system",
+      "description": "Build email notification system for task assignments and deadline reminders",
+      "status": 1,
+      "priority": 1,
+      "dueDate": "2025-02-15T14:00:00Z",
+      "userIndex": 1,
+      "categoryIndex": 1
+    },
+    {
+      "title": "User onboarding flow",
+      "description": "Design and implement guided user onboarding experience for new users",
+      "status": 2,
+      "priority": 1,
+      "dueDate": "2025-02-20T10:00:00Z",
+      "userIndex": 3,
+      "categoryIndex": 2
+    }
+  ]
+}
