@@ -103,13 +103,35 @@ namespace TaskManagement.API.Repositories
         public async Task<bool> DeleteAsync(int id)
         {
             _logger.LogInformation("Deleting task with ID: {TaskId}", id);
-            var task = await _context.Tasks.FindAsync(id);
-            if (task == null)
-                return false;
 
-            _context.Tasks.Remove(task);
-            await _context.SaveChangesAsync();
-            return true;
+            try
+            {
+                var task = await _context.Tasks
+                    .Include(t => t.Comments)
+                    .Include(t => t.Activities)
+                    .FirstOrDefaultAsync(t => t.Id == id);
+
+                if (task == null)
+                {
+                    _logger.LogWarning("Task with ID {TaskId} not found", id);
+                    return false;
+                }
+
+                _logger.LogInformation("Deleting task '{TaskTitle}' with {CommentCount} comments and {ActivityCount} activities",
+                    task.Title, task.Comments.Count, task.Activities.Count);
+
+                // Remove the task (cascade delete should handle comments and activities)
+                _context.Tasks.Remove(task);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Successfully deleted task with ID: {TaskId}", id);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Database error while deleting task with ID: {TaskId}", id);
+                throw; // Re-throw to let service layer handle it
+            }
         }
 
         public async Task<bool> ExistsAsync(int id)

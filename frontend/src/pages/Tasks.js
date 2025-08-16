@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Link, useLocation } from 'react-router-dom';
-import { Plus, Filter, Search, Grid, List } from 'lucide-react';
+import { Plus, Filter, Search, Grid, List, Calendar, LayoutGrid } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { tasksApi, usersApi, categoriesApi } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import TaskCard from '../components/TaskCard';
+import KanbanBoard from '../components/KanbanBoard';
+import CalendarView from '../components/CalendarView';
 
 const Tasks = () => {
   const location = useLocation();
   const queryClient = useQueryClient();
+
+  // View state
+  const [currentView, setCurrentView] = useState('list'); // list, kanban, calendar
 
   // Initialize filters from URL parameters
   const [filters, setFilters] = useState({
@@ -20,9 +25,16 @@ const Tasks = () => {
     search: '',
   });
 
-  // Read URL parameters and set initial filters
+  // Read URL parameters and set initial filters and view
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
+
+    // Set initial view from URL parameter
+    const viewParam = searchParams.get('view');
+    if (viewParam && ['list', 'kanban', 'calendar'].includes(viewParam)) {
+      setCurrentView(viewParam);
+    }
+
     const initialFilters = {
       status: searchParams.get('status') || '',
       userId: searchParams.get('userId') || '',
@@ -54,7 +66,16 @@ const Tasks = () => {
         toast.success('Task deleted successfully');
       },
       onError: (error) => {
-        toast.error(error.response?.data?.message || 'Failed to delete task');
+        console.error('Delete task error:', error);
+        console.error('Error response:', error.response);
+        console.error('Error status:', error.response?.status);
+        console.error('Error data:', error.response?.data);
+
+        const errorMessage = error.response?.data?.message ||
+                           error.response?.data ||
+                           error.message ||
+                           'Failed to delete task';
+        toast.error(errorMessage);
       },
     }
   );
@@ -98,17 +119,39 @@ const Tasks = () => {
         <div className="flex items-center gap-3">
           {/* View Toggle */}
           <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm">
+            <button
+              onClick={() => setCurrentView('list')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                currentView === 'list'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
               <List size={16} />
               List View
-            </div>
-            <Link
-              to="/kanban"
-              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            </button>
+            <button
+              onClick={() => setCurrentView('kanban')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                currentView === 'kanban'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
             >
-              <Grid size={16} />
+              <LayoutGrid size={16} />
               Kanban
-            </Link>
+            </button>
+            <button
+              onClick={() => setCurrentView('calendar')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                currentView === 'calendar'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <Calendar size={16} />
+              Calendar
+            </button>
           </div>
 
           {/* Add Task Button */}
@@ -119,12 +162,13 @@ const Tasks = () => {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="card mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Filter size={20} />
-          <h3 className="font-medium">Filters</h3>
-        </div>
+      {/* Filters - Only show for list view */}
+      {currentView === 'list' && (
+        <div className="card mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter size={20} />
+            <h3 className="font-medium">Filters</h3>
+          </div>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
@@ -185,32 +229,46 @@ const Tasks = () => {
             </select>
           </div>
         </div>
-      </div>
+        </div>
+      )}
 
-      {/* Tasks Grid */}
-      {filteredTasks.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTasks.map((task) => (
-            <TaskCard 
-              key={task.id} 
-              task={task} 
-              onDelete={handleDeleteTask}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="card text-center py-8">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No tasks found</h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-4">
-            {filters.search || filters.status || filters.userId || filters.categoryId
-              ? 'Try adjusting your filters or create a new task.'
-              : 'Get started by creating your first task.'}
-          </p>
-          <Link to="/tasks/new" className="btn btn-primary">
-            <Plus size={20} />
-            Create Task
-          </Link>
-        </div>
+      {/* Conditional View Rendering */}
+      {currentView === 'list' && (
+        <>
+          {/* Tasks Grid */}
+          {filteredTasks.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredTasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onDelete={handleDeleteTask}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="card text-center py-8">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No tasks found</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                {filters.search || filters.status || filters.userId || filters.categoryId
+                  ? 'Try adjusting your filters or create a new task.'
+                  : 'Get started by creating your first task.'}
+              </p>
+              <Link to="/tasks/new" className="btn btn-primary">
+                <Plus size={20} />
+                Create Task
+              </Link>
+            </div>
+          )}
+        </>
+      )}
+
+      {currentView === 'kanban' && (
+        <KanbanBoard />
+      )}
+
+      {currentView === 'calendar' && (
+        <CalendarView />
       )}
     </div>
   );

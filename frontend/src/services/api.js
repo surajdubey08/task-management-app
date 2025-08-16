@@ -39,7 +39,17 @@ export const tasksApi = {
   getById: (id) => api.get(`/tasks/${id}`),
   create: (data) => api.post('/tasks', data),
   update: (id, data) => api.put(`/tasks/${id}`, data),
-  delete: (id) => api.delete(`/tasks/${id}`),
+  delete: async (id) => {
+    try {
+      console.log(`Attempting to delete task ${id}`);
+      const response = await api.delete(`/tasks/${id}`);
+      console.log(`Delete response:`, response);
+      return response;
+    } catch (error) {
+      console.error(`Delete task ${id} failed:`, error);
+      throw error;
+    }
+  },
 };
 
 // Users API

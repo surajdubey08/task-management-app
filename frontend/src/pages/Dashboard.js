@@ -112,10 +112,13 @@ const Dashboard = () => {
             <Plus size={18} />
             <span>Create Task</span>
           </Link>
-          <button className="inline-flex items-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 border border-gray-200 dark:border-gray-700">
+          <Link
+            to="/tasks?view=calendar"
+            className="inline-flex items-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 border border-gray-200 dark:border-gray-700"
+          >
             <Calendar size={18} />
             <span>View Calendar</span>
-          </button>
+          </Link>
         </div>
       </div>
 

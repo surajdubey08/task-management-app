@@ -173,7 +173,38 @@ namespace TaskManagement.API.Services
         public async Task<bool> DeleteTaskAsync(int id)
         {
             _logger.LogInformation("Deleting task with ID: {TaskId}", id);
-            return await _taskRepository.DeleteAsync(id);
+
+            try
+            {
+                // Check if task exists first
+                var task = await _taskRepository.GetByIdAsync(id);
+                if (task == null)
+                {
+                    _logger.LogWarning("Task with ID {TaskId} not found for deletion", id);
+                    return false;
+                }
+
+                _logger.LogInformation("Found task '{TaskTitle}' for deletion", task.Title);
+
+                // Delete the task (cascade should handle comments and activities)
+                var result = await _taskRepository.DeleteAsync(id);
+
+                if (result)
+                {
+                    _logger.LogInformation("Successfully deleted task with ID: {TaskId}", id);
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to delete task with ID: {TaskId}", id);
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while deleting task with ID: {TaskId}", id);
+                throw; // Re-throw to let controller handle it
+            }
         }
 
 
