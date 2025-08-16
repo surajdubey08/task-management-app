@@ -202,7 +202,10 @@ deploy_application() {
         "nginx-configmap.yaml"
         "secret.yaml"
         "api-deployment.yaml"
+        "api-service.yaml"
         "frontend-deployment.yaml"
+        "frontend-service.yaml"
+        "ingress.yaml"
     )
     
     for manifest in "${manifests[@]}"; do

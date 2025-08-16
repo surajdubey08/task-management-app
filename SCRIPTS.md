@@ -4,11 +4,12 @@ This document provides comprehensive documentation for all automation scripts in
 
 ## 📁 Scripts Overview
 
-TaskFlow includes three powerful automation scripts designed to streamline development, deployment, and database management workflows:
+TaskFlow includes four powerful automation scripts designed to streamline development, deployment, and database management workflows:
 
 1. **`build-deploy.sh`** - Build and deployment automation
 2. **`k8s-deploy.sh`** - Kubernetes deployment management
-3. **`database-manager.sh`** - Database operations and data management
+3. **`database-manager.sh`** - Database operations and data management (local/Docker)
+4. **`k8s-database-manager.sh`** - Database operations for Kubernetes deployments
 
 ## 🔧 Prerequisites
 
@@ -376,6 +377,90 @@ kubectl top pods -n taskmanagement
 # Monitor container performance
 docker stats
 ```
+
+## 🎯 Script 4: k8s-database-manager.sh
+
+### Purpose
+Database management script specifically designed for TaskFlow applications running in Kubernetes clusters. Provides seamless data operations through port forwarding and service discovery.
+
+### Usage
+```bash
+./scripts/k8s-database-manager.sh [OPTIONS] COMMAND
+```
+
+### Parameters
+
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `--namespace NAME` | Kubernetes namespace | `./scripts/k8s-database-manager.sh --namespace production status` |
+| `--service NAME` | API service name | `./scripts/k8s-database-manager.sh --service api-service populate` |
+| `--port PORT` | Local port for port forwarding | `./scripts/k8s-database-manager.sh --port 9090 status` |
+| `--force` | Skip confirmation prompts | `./scripts/k8s-database-manager.sh --force clear` |
+| `--help` | Show help message | `./scripts/k8s-database-manager.sh --help` |
+
+### Commands
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `status` | Show deployment and data status | `./scripts/k8s-database-manager.sh status` |
+| `populate` | Populate database with sample data | `./scripts/k8s-database-manager.sh populate` |
+| `clear` | Clear all data from database | `./scripts/k8s-database-manager.sh --force clear` |
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NAMESPACE` | Kubernetes namespace | `taskmanagement` |
+| `SERVICE_NAME` | API service name | `taskmanagement-api-service` |
+| `SERVICE_PORT` | Service port | `80` |
+| `LOCAL_PORT` | Local port for port forwarding | `8080` |
+| `SAMPLE_DATA_FILE` | Sample data JSON file | `scripts/sample-data.json` |
+
+### Use Cases
+
+#### 1. Check Kubernetes Deployment Status
+```bash
+# Basic status check
+./scripts/k8s-database-manager.sh status
+
+# Check specific namespace
+./scripts/k8s-database-manager.sh --namespace production status
+```
+
+#### 2. Populate Fresh Deployment
+```bash
+# Populate with sample data
+./scripts/k8s-database-manager.sh populate
+
+# Force populate without confirmation
+./scripts/k8s-database-manager.sh --force populate
+```
+
+#### 3. Data Management
+```bash
+# Clear all data (with confirmation)
+./scripts/k8s-database-manager.sh clear
+
+# Force clear without confirmation
+./scripts/k8s-database-manager.sh --force clear
+```
+
+#### 4. Custom Environments
+```bash
+# Production environment
+./scripts/k8s-database-manager.sh --namespace production --service taskflow-api-service status
+
+# Development environment with custom port
+./scripts/k8s-database-manager.sh --namespace dev --port 9090 populate
+```
+
+### Features
+- **Port Forwarding**: Automatic setup and cleanup of kubectl port-forward
+- **Service Discovery**: Automatic detection of API services and pods
+- **Data Validation**: JSON validation and API connectivity checks
+- **Confirmation Prompts**: Safety prompts for destructive operations
+- **Multi-Environment**: Support for different namespaces and services
+- **Error Handling**: Comprehensive error handling and cleanup
 
 ---
 

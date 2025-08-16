@@ -35,12 +35,11 @@ RUN chown -R appuser:appuser /app
 USER appuser
 
 # Expose port
-EXPOSE 80
-EXPOSE 443
+EXPOSE 8080
 
-# Health check (using wget since curl might need root for some operations)
+# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:80/health || exit 1
+  CMD curl -f http://localhost:8080/health || exit 1
 
 # Set the entry point
 ENTRYPOINT ["dotnet", "TaskManagement.API.dll"]

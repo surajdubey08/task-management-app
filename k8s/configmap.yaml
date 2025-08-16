@@ -6,7 +6,7 @@ metadata:
 data:
   # API configuration
   ASPNETCORE_ENVIRONMENT: "Production"
-  ASPNETCORE_URLS: "http://+:80"
+  ASPNETCORE_URLS: "http://+:8080"
   
   # Frontend configuration
   REACT_APP_API_URL: "http://taskmanagement-api-service/api"

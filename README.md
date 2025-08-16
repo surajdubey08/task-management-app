@@ -267,14 +267,38 @@ Interactive API documentation available at `/swagger` endpoint when running the 
 
 ## 🎯 Production Deployment
 
+### Kubernetes Deployment
+
+**✅ DEPLOYMENT READY** - All configurations validated and optimized for K8s.
+
+#### Quick Deploy
+```bash
+# Validate configuration
+./scripts/k8s-validate.sh
+
+# Deploy to Kubernetes
+./scripts/k8s-deploy.sh deploy
+
+# Check status
+./scripts/k8s-deploy.sh status
+
+# Manage database (populate with sample data)
+./scripts/k8s-database-manager.sh populate
+```
+
+#### Access Points
+- **LoadBalancer**: `kubectl get svc taskmanagement-frontend-service -n taskmanagement`
+- **NodePort**: `http://<node-ip>:30080`
+- **Ingress**: `http://taskmanagement.local`
+
+See [K8S-DEPLOYMENT-CHECKLIST.md](K8S-DEPLOYMENT-CHECKLIST.md) for complete deployment details.
+
 ### Environment Variables
 
 **Backend (.NET API)**
 - `ASPNETCORE_ENVIRONMENT` - Environment (Development/Production)
+- `ASPNETCORE_URLS` - Server URLs (http://+:8080)
 - `ConnectionStrings__DefaultConnection` - Database connection string
-- `JWT__SecretKey` - JWT signing key
-- `JWT__Issuer` - JWT issuer
-- `JWT__Audience` - JWT audience
 
 **Frontend (React)**
 - `REACT_APP_API_URL` - Backend API base URL
