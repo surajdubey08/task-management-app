@@ -121,6 +121,11 @@ namespace TaskManagement.API.Controllers
                 _logger.LogWarning(ex, "Invalid argument while updating task with ID: {TaskId}", id);
                 return BadRequest(ex.Message);
             }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Invalid operation while updating task with ID: {TaskId}", id);
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while updating task with ID: {TaskId}", id);

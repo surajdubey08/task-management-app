@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { Link } from 'react-router-dom';
-import { Plus, Filter, Search } from 'lucide-react';
+import { Plus, Filter, Search, Grid, List } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { tasksApi, usersApi, categoriesApi } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -73,12 +73,36 @@ const Tasks = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
-        <Link to="/tasks/new" className="btn btn-primary">
-          <Plus size={20} />
-          New Task
-        </Link>
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Tasks</h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Manage and track all your tasks
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* View Toggle */}
+          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm">
+              <List size={16} />
+              List View
+            </div>
+            <Link
+              to="/kanban"
+              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              <Grid size={16} />
+              Kanban
+            </Link>
+          </div>
+
+          {/* Add Task Button */}
+          <Link to="/tasks/new" className="btn btn-primary">
+            <Plus size={20} />
+            New Task
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}

@@ -6,6 +6,9 @@ import { format } from 'date-fns';
 import { tasksApi } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import TaskComments from '../components/TaskComments';
+import TaskActivity from '../components/TaskActivity';
+import TaskDependencies from '../components/TaskDependencies';
 
 const TaskDetail = () => {
   const { id } = useParams();
@@ -82,92 +85,114 @@ const TaskDetail = () => {
         </Link>
       </div>
 
-      <div className="max-w-4xl">
-        <div className="card">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-3">{task.title}</h2>
-            <div className="flex gap-3 mb-4">
-              {getStatusBadge(task.status)}
-              {getPriorityBadge(task.priority)}
+      <div className="max-w-6xl">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main task details */}
+          <div className="lg:col-span-2">
+            <div className="card">
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">{task.title}</h2>
+                <div className="flex gap-3 mb-4">
+                  {getStatusBadge(task.status)}
+                  {getPriorityBadge(task.priority)}
+                </div>
+              </div>
+
+              {task.description && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Description</h3>
+                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{task.description}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Task Information</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <User className="text-gray-400" size={20} />
+                      <div>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Assigned to:</span>
+                        <p className="font-medium text-gray-900 dark:text-white">{task.userName}</p>
+                      </div>
+                    </div>
+
+                    {task.categoryName && (
+                      <div className="flex items-center gap-3">
+                        <Tag className="text-gray-400" size={20} />
+                        <div>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Category:</span>
+                          <p className="font-medium flex items-center gap-2 text-gray-900 dark:text-white">
+                            <span
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: task.categoryColor }}
+                            />
+                            {task.categoryName}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {task.dueDate && (
+                      <div className="flex items-center gap-3">
+                        <Calendar className="text-gray-400" size={20} />
+                        <div>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Due date:</span>
+                          <p className="font-medium text-gray-900 dark:text-white">{formatDate(task.dueDate)}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Timeline</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Clock className="text-gray-400" size={20} />
+                      <div>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Created:</span>
+                        <p className="font-medium text-gray-900 dark:text-white">{formatDate(task.createdAt)}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <Clock className="text-gray-400" size={20} />
+                      <div>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Last updated:</span>
+                        <p className="font-medium text-gray-900 dark:text-white">{formatDate(task.updatedAt)}</p>
+                      </div>
+                    </div>
+
+                    {task.completedAt && (
+                      <div className="flex items-center gap-3">
+                        <Clock className="text-gray-400" size={20} />
+                        <div>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Completed:</span>
+                          <p className="font-medium text-gray-900 dark:text-white">{formatDate(task.completedAt)}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Dependencies section */}
+            <div className="card mt-8">
+              <TaskDependencies taskId={task.id} currentUserId={1} />
+            </div>
+
+            {/* Comments section */}
+            <div className="card mt-8">
+              <TaskComments taskId={task.id} currentUserId={1} />
             </div>
           </div>
 
-          {task.description && (
-            <div className="mb-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Description</h3>
-              <p className="text-gray-700 whitespace-pre-wrap">{task.description}</p>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Task Information</h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <User className="text-gray-400" size={20} />
-                  <div>
-                    <span className="text-sm text-gray-500">Assigned to:</span>
-                    <p className="font-medium">{task.userName}</p>
-                  </div>
-                </div>
-
-                {task.categoryName && (
-                  <div className="flex items-center gap-3">
-                    <Tag className="text-gray-400" size={20} />
-                    <div>
-                      <span className="text-sm text-gray-500">Category:</span>
-                      <p className="font-medium flex items-center gap-2">
-                        <span 
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: task.categoryColor }}
-                        />
-                        {task.categoryName}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {task.dueDate && (
-                  <div className="flex items-center gap-3">
-                    <Calendar className="text-gray-400" size={20} />
-                    <div>
-                      <span className="text-sm text-gray-500">Due date:</span>
-                      <p className="font-medium">{formatDate(task.dueDate)}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Timeline</h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Clock className="text-gray-400" size={20} />
-                  <div>
-                    <span className="text-sm text-gray-500">Created:</span>
-                    <p className="font-medium">{formatDate(task.createdAt)}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Clock className="text-gray-400" size={20} />
-                  <div>
-                    <span className="text-sm text-gray-500">Last updated:</span>
-                    <p className="font-medium">{formatDate(task.updatedAt)}</p>
-                  </div>
-                </div>
-
-                {task.completedAt && (
-                  <div className="flex items-center gap-3">
-                    <Clock className="text-gray-400" size={20} />
-                    <div>
-                      <span className="text-sm text-gray-500">Completed:</span>
-                      <p className="font-medium">{formatDate(task.completedAt)}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
+          {/* Activity sidebar */}
+          <div className="lg:col-span-1">
+            <div className="card sticky top-24">
+              <TaskActivity taskId={task.id} />
             </div>
           </div>
         </div>

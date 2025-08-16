@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Save } from 'lucide-react';
-import { tasksApi, usersApi, categoriesApi } from '../services/api';
+import { tasksApi, usersApi, categoriesApi, taskDependenciesApi } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import TaskDependencySelector from '../components/TaskDependencySelector';
 
 const CreateTask = () => {
   const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors } } = useForm();
+  const [dependencies, setDependencies] = useState([]);
 
   const { data: users, isLoading: usersLoading } = useQuery(
     'users',
@@ -23,7 +25,25 @@ const CreateTask = () => {
   );
 
   const createTaskMutation = useMutation(
-    (data) => tasksApi.create(data),
+    async (data) => {
+      // First create the task
+      const taskResponse = await tasksApi.create(data);
+      const newTask = taskResponse.data;
+
+      // Then create dependencies if any
+      if (dependencies.length > 0) {
+        const dependencyPromises = dependencies.map(dep =>
+          taskDependenciesApi.create(newTask.id, {
+            dependentTaskId: dep.taskId,
+            dependencyType: dep.dependencyType,
+            createdByUserId: data.userId
+          })
+        );
+        await Promise.all(dependencyPromises);
+      }
+
+      return newTask;
+    },
     {
       onSuccess: () => {
         toast.success('Task created successfully');
@@ -159,6 +179,14 @@ const CreateTask = () => {
                 type="datetime-local"
                 className="form-input"
                 {...register('dueDate')}
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <TaskDependencySelector
+                selectedDependencies={dependencies}
+                onDependenciesChange={setDependencies}
+                label="Task Dependencies"
               />
             </div>
           </div>

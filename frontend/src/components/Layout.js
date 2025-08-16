@@ -9,7 +9,8 @@ import {
   X,
   Bell,
   Search,
-  Settings
+  Settings,
+  Grid
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
@@ -53,6 +54,7 @@ const Layout = ({ children }) => {
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Tasks', href: '/tasks', icon: CheckSquare },
+    { name: 'Kanban', href: '/kanban', icon: Grid },
     { name: 'Users', href: '/users', icon: Users },
     { name: 'Categories', href: '/categories', icon: Tag },
   ];

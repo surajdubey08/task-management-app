@@ -14,6 +14,9 @@ namespace TaskManagement.API.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<TaskItem> Tasks { get; set; }
+        public DbSet<TaskComment> TaskComments { get; set; }
+        public DbSet<TaskActivity> TaskActivities { get; set; }
+        public DbSet<TaskDependency> TaskDependencies { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -55,6 +58,70 @@ namespace TaskManagement.API.Data
                       .WithMany(c => c.Tasks)
                       .HasForeignKey(e => e.CategoryId)
                       .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // TaskComment configuration
+            modelBuilder.Entity<TaskComment>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Content).IsRequired().HasMaxLength(2000);
+
+                entity.HasOne(e => e.Task)
+                      .WithMany(t => t.Comments)
+                      .HasForeignKey(e => e.TaskId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.User)
+                      .WithMany(u => u.Comments)
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // TaskActivity configuration
+            modelBuilder.Entity<TaskActivity>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.OldValue).HasMaxLength(100);
+                entity.Property(e => e.NewValue).HasMaxLength(100);
+
+                entity.HasOne(e => e.Task)
+                      .WithMany(t => t.Activities)
+                      .HasForeignKey(e => e.TaskId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.User)
+                      .WithMany(u => u.Activities)
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // TaskDependency configuration
+            modelBuilder.Entity<TaskDependency>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(e => e.Task)
+                      .WithMany(t => t.Dependencies)
+                      .HasForeignKey(e => e.TaskId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.DependentTask)
+                      .WithMany(t => t.DependentTasks)
+                      .HasForeignKey(e => e.DependentTaskId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.CreatedByUser)
+                      .WithMany()
+                      .HasForeignKey(e => e.CreatedByUserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Prevent self-referencing dependencies
+                entity.ToTable(t => t.HasCheckConstraint("CK_TaskDependency_NoSelfReference", "TaskId != DependentTaskId"));
+
+                // Unique constraint to prevent duplicate dependencies
+                entity.HasIndex(e => new { e.TaskId, e.DependentTaskId, e.DependencyType })
+                      .IsUnique();
             });
 
             // Seed data

@@ -26,5 +26,7 @@ namespace TaskManagement.API.Models
         
         // Navigation properties
         public virtual ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
+        public virtual ICollection<TaskComment> Comments { get; set; } = new List<TaskComment>();
+        public virtual ICollection<TaskActivity> Activities { get; set; } = new List<TaskActivity>();
     }
 }

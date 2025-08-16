@@ -6,6 +6,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
+import KanbanView from './pages/KanbanView';
 import Users from './pages/Users';
 import Categories from './pages/Categories';
 import TaskDetail from './pages/TaskDetail';
@@ -35,6 +36,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/tasks" element={<Tasks />} />
+                <Route path="/kanban" element={<KanbanView />} />
                 <Route path="/tasks/new" element={<CreateTask />} />
                 <Route path="/tasks/:id" element={<TaskDetail />} />
                 <Route path="/tasks/:id/edit" element={<EditTask />} />

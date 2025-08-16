@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Save } from 'lucide-react';
-import { tasksApi, usersApi, categoriesApi } from '../services/api';
+import { tasksApi, usersApi, categoriesApi, taskDependenciesApi } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 
@@ -42,15 +42,103 @@ const EditTask = () => {
     () => categoriesApi.getAll(true).then(res => res.data)
   );
 
+  // Check if task can be moved to new status
+  const checkTaskCanMove = async (newStatus) => {
+    try {
+      // Only check dependencies for In Progress (1) and Completed (2) statuses
+      if (newStatus === 1 || newStatus === 2) {
+        console.log(`Checking dependencies for task ${id} moving to status ${newStatus}`);
+
+        // Make both API calls and wait for both to complete
+        const [canStartResponse, reasonsResponse] = await Promise.all([
+          taskDependenciesApi.canTaskStart(id),
+          taskDependenciesApi.getBlockingReasons(id)
+        ]);
+
+        const canStart = canStartResponse.data;
+        const reasons = reasonsResponse.data;
+
+        console.log(`Task ${id} canStart: ${canStart}, reasons:`, reasons);
+
+        if (!canStart && reasons.length > 0) {
+          return { canMove: false, reasons };
+        }
+      }
+      return { canMove: true, reasons: [] };
+    } catch (error) {
+      console.error('Error checking task dependencies:', error);
+      // Be more conservative - if we can't check, don't allow risky moves
+      if (newStatus === 1 || newStatus === 2) {
+        return { canMove: false, reasons: ['Unable to verify dependencies. Please try again.'] };
+      }
+      return { canMove: true, reasons: [] };
+    }
+  };
+
   const updateTaskMutation = useMutation(
-    (data) => tasksApi.update(id, data),
+    async (data) => {
+      // Check dependencies if status is being changed
+      if (data.status !== task.status) {
+        const { canMove, reasons } = await checkTaskCanMove(data.status);
+
+        if (!canMove) {
+          const statusNames = { 0: 'Pending', 1: 'In Progress', 2: 'Completed', 3: 'Cancelled' };
+
+          throw new Error(`Cannot change status to ${statusNames[data.status]}:\n\n${reasons.join('\n')}`);
+        }
+      }
+
+      return tasksApi.update(id, data);
+    },
     {
       onSuccess: () => {
         toast.success('Task updated successfully');
         navigate(`/tasks/${id}`);
       },
       onError: (error) => {
-        toast.error(error.response?.data?.message || 'Failed to update task');
+        const errorMessage = error.response?.data || error.message || 'Failed to update task';
+
+        // Check if it's a dependency error for special formatting
+        if (errorMessage.includes('dependent tasks would become invalid') ||
+            errorMessage.includes('blocked by dependencies')) {
+          const parts = errorMessage.split(':');
+          const title = parts[0] || 'Cannot update task';
+          const details = parts.slice(1).join(':').trim() || errorMessage;
+
+          // Show compact error
+          toast.error(
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0 mt-0.5">
+                <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-gray-900 text-sm">{title}</div>
+                <div className="text-xs text-gray-600 mt-1 line-clamp-2">
+                  {details.split('\n').slice(0, 2).join(', ')}
+                </div>
+              </div>
+            </div>,
+            {
+              duration: 4000,
+              style: {
+                maxWidth: '350px',
+                padding: '12px',
+                borderRadius: '8px',
+                fontSize: '14px',
+              },
+              position: 'top-right',
+            }
+          );
+        } else {
+          toast.error(errorMessage, {
+            duration: 4000,
+            style: {
+              maxWidth: '350px',
+            }
+          });
+        }
       },
     }
   );

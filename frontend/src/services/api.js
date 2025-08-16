@@ -61,4 +61,28 @@ export const categoriesApi = {
   delete: (id) => api.delete(`/categories/${id}`),
 };
 
+// Task Comments API
+export const taskCommentsApi = {
+  getByTaskId: (taskId) => api.get(`/tasks/${taskId}/comments`),
+  getById: (taskId, commentId) => api.get(`/tasks/${taskId}/comments/${commentId}`),
+  create: (taskId, data) => api.post(`/tasks/${taskId}/comments`, data),
+  update: (taskId, commentId, data) => api.put(`/tasks/${taskId}/comments/${commentId}`, data),
+  delete: (taskId, commentId) => api.delete(`/tasks/${taskId}/comments/${commentId}`),
+};
+
+// Task Activities API
+export const taskActivitiesApi = {
+  getByTaskId: (taskId) => api.get(`/tasks/${taskId}/activities`),
+};
+
+// Task Dependencies API
+export const taskDependenciesApi = {
+  getByTaskId: (taskId) => api.get(`/tasks/${taskId}/dependencies`),
+  getTaskWithDependencies: (taskId) => api.get(`/tasks/${taskId}/dependencies/with-details`),
+  create: (taskId, data) => api.post(`/tasks/${taskId}/dependencies`, data),
+  delete: (dependencyId) => api.delete(`/dependencies/${dependencyId}`),
+  canTaskStart: (taskId) => api.get(`/tasks/${taskId}/dependencies/can-start`),
+  getBlockingReasons: (taskId) => api.get(`/tasks/${taskId}/dependencies/blocking-reasons`),
+};
+
 export default api;

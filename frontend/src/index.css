@@ -2,6 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom styles for compact error toasts */
+.Toastify__toast--error {
+  background: #fee2e2 !important;
+  border: 1px solid #fca5a5 !important;
+  color: #991b1b !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+}
+
+/* Compact toast positioning */
+.Toastify__toast-container--top-right {
+  top: 20px !important;
+  right: 20px !important;
+  width: 350px !important;
+}
+
+/* Enhanced toast animations */
+.Toastify__toast--error {
+  animation: slideInRight 0.2s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Text truncation for long messages */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Icon styling */
+.Toastify__toast--error svg {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.1));
+}
+
+/* Line clamp utilities for text truncation */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
