@@ -1,24 +1,10 @@
-import React from 'react';
+
 import { Draggable } from 'react-beautiful-dnd';
 import { Link } from 'react-router-dom';
-import { useQuery } from 'react-query';
-import { Calendar, User, Tag, Edit, Eye, AlertCircle, Clock, Link2, Lock } from 'lucide-react';
+import { Calendar, User, Tag, Edit, Eye, AlertCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
-import { taskDependenciesApi } from '../services/api';
 
 const KanbanCard = ({ task, index }) => {
-  // Check if task is blocked (only for pending tasks)
-  const { data: canStart = true, isLoading: isCheckingDeps } = useQuery(
-    ['taskCanStart', task.id],
-    () => taskDependenciesApi.canTaskStart(task.id).then(res => res.data),
-    {
-      enabled: task.status === 0, // Only check for pending tasks
-      staleTime: 5000, // Cache for 5 seconds (even shorter for edge cases)
-      refetchOnWindowFocus: true, // Refetch when window gains focus
-      refetchInterval: 30000, // Refetch every 30 seconds to catch edge cases
-      retry: 2,
-    }
-  );
 
   const getPriorityColor = (priority) => {
     const priorityMap = {
@@ -75,7 +61,7 @@ const KanbanCard = ({ task, index }) => {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           className={`
-            bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 p-4 mb-3 
+            bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 p-4
             transition-all duration-200 hover:shadow-md cursor-pointer
             ${getPriorityColor(task.priority)}
             ${snapshot.isDragging ? 'shadow-lg rotate-2 scale-105' : ''}
@@ -105,18 +91,7 @@ const KanbanCard = ({ task, index }) => {
               <PriorityIcon size={12} />
               <span>{getPriorityLabel(task.priority)}</span>
             </div>
-            {(task.hasDependencies || task.hasBlockedTasks) && (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-purple-600 bg-purple-100 dark:bg-purple-900/20" title="Has dependencies">
-                <Link2 size={12} />
-                <span>Deps</span>
-              </div>
-            )}
-            {task.status === 0 && !canStart && (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-red-600 bg-red-100 dark:bg-red-900/20" title="Task is blocked by dependencies">
-                <Lock size={12} />
-                <span>Blocked</span>
-              </div>
-            )}
+
           </div>
 
           {/* Task Meta Information */}

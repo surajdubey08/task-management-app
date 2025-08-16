@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Plus, Filter, Search, Grid, List } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { tasksApi, usersApi, categoriesApi } from '../services/api';
@@ -9,6 +9,10 @@ import ErrorMessage from '../components/ErrorMessage';
 import TaskCard from '../components/TaskCard';
 
 const Tasks = () => {
+  const location = useLocation();
+  const queryClient = useQueryClient();
+
+  // Initialize filters from URL parameters
   const [filters, setFilters] = useState({
     status: '',
     userId: '',
@@ -16,7 +20,17 @@ const Tasks = () => {
     search: '',
   });
 
-  const queryClient = useQueryClient();
+  // Read URL parameters and set initial filters
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const initialFilters = {
+      status: searchParams.get('status') || '',
+      userId: searchParams.get('userId') || '',
+      categoryId: searchParams.get('categoryId') || '',
+      search: searchParams.get('search') || '',
+    };
+    setFilters(initialFilters);
+  }, [location.search]);
 
   const { data: tasks, isLoading, error, refetch } = useQuery(
     ['tasks', filters],
@@ -119,7 +133,7 @@ const Tasks = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
-                className="form-input pl-10"
+                className="form-input pl-14"
                 placeholder="Search tasks..."
                 value={filters.search}
                 onChange={(e) => setFilters({ ...filters, search: e.target.value })}

@@ -37,15 +37,7 @@ namespace TaskManagement.API.Mappings
             CreateMap<TaskActivity, TaskActivityDto>()
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.Name));
 
-            // Task Dependency mappings
-            CreateMap<TaskDependency, TaskDependencyDto>()
-                .ForMember(dest => dest.TaskTitle, opt => opt.MapFrom(src => src.Task.Title))
-                .ForMember(dest => dest.DependentTaskTitle, opt => opt.MapFrom(src => src.DependentTask.Title))
-                .ForMember(dest => dest.CreatedByUserName, opt => opt.MapFrom(src => src.CreatedByUser.Name))
-                .ForMember(dest => dest.TaskStatus, opt => opt.MapFrom(src => src.Task.Status))
-                .ForMember(dest => dest.DependentTaskStatus, opt => opt.MapFrom(src => src.DependentTask.Status));
-            CreateMap<CreateTaskDependencyDto, TaskDependency>();
-            CreateMap<TaskItem, TaskWithDependenciesDto>();
+
         }
     }
 }

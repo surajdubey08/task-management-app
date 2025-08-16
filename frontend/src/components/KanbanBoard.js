@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DragDropContext } from 'react-beautiful-dnd';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
-import { tasksApi, taskDependenciesApi } from '../services/api';
+import { tasksApi } from '../services/api';
 import KanbanColumn from './KanbanColumn';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
@@ -10,37 +10,9 @@ import ErrorMessage from './ErrorMessage';
 const KanbanBoard = () => {
   const [columns, setColumns] = useState([]);
   const [tasks, setTasks] = useState([]);
-  const [isValidating, setIsValidating] = useState(false);
   const queryClient = useQueryClient();
 
-  // Compact error message function
-  const showCompactError = (title, details) => {
-    toast.error(
-      <div className="flex items-start space-x-3">
-        <div className="flex-shrink-0 mt-0.5">
-          <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-          </svg>
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-medium text-gray-900 text-sm">{title}</div>
-          <div className="text-xs text-gray-600 mt-1 line-clamp-2">
-            {details.split('\n').slice(0, 2).join(', ')}
-          </div>
-        </div>
-      </div>,
-      {
-        duration: 4000,
-        style: {
-          maxWidth: '350px',
-          padding: '12px',
-          borderRadius: '8px',
-          fontSize: '14px',
-        },
-        position: 'top-right',
-      }
-    );
-  };
+
 
 
   // Define the columns structure
@@ -62,38 +34,7 @@ const KanbanBoard = () => {
     }
   );
 
-  // Check if task can be moved to new status with proper error handling
-  const checkTaskCanMove = async (taskId, newStatus) => {
-    try {
-      // Only check dependencies for In Progress (1) and Completed (2) statuses
-      if (newStatus === 1 || newStatus === 2) {
-        console.log(`Checking dependencies for task ${taskId} moving to status ${newStatus}`);
 
-        // Make both API calls and wait for both to complete
-        const [canStartResponse, reasonsResponse] = await Promise.all([
-          taskDependenciesApi.canTaskStart(taskId),
-          taskDependenciesApi.getBlockingReasons(taskId)
-        ]);
-
-        const canStart = canStartResponse.data;
-        const reasons = reasonsResponse.data;
-
-        console.log(`Task ${taskId} canStart: ${canStart}, reasons:`, reasons);
-
-        if (!canStart && reasons.length > 0) {
-          return { canMove: false, reasons };
-        }
-      }
-      return { canMove: true, reasons: [] };
-    } catch (error) {
-      console.error('Error checking task dependencies:', error);
-      // Be more conservative - if we can't check, don't allow risky moves
-      if (newStatus === 1 || newStatus === 2) {
-        return { canMove: false, reasons: ['Unable to verify dependencies. Please try again.'] };
-      }
-      return { canMove: true, reasons: [] };
-    }
-  };
 
   // Update task status mutation - optimized for drag and drop
   const updateTaskMutation = useMutation(
@@ -102,7 +43,7 @@ const KanbanBoard = () => {
       return tasksApi.update(taskId, updateData);
     },
     {
-      onSuccess: (data, variables) => {
+      onSuccess: (_, variables) => {
         console.log(`Successfully updated task ${variables.taskId}`);
 
         // Invalidate related queries to ensure fresh data for ALL tasks
@@ -117,7 +58,7 @@ const KanbanBoard = () => {
         // Don't show success toast for drag operations to avoid spam
         // toast.success('Task updated successfully');
       },
-      onError: (error, variables) => {
+      onError: (error) => {
         console.error('Task update failed:', error);
 
         // Revert optimistic update on backend failure
@@ -126,21 +67,15 @@ const KanbanBoard = () => {
         // Show detailed error message from backend
         const errorMessage = error.response?.data || error.message || 'Failed to update task';
 
-        // Check if it's a dependency error for special formatting
-        if (errorMessage.includes('dependent tasks would become invalid') ||
-            errorMessage.includes('blocked by dependencies')) {
-          const parts = errorMessage.split(':');
-          const title = parts[0] || 'Cannot update task';
-          const details = parts.slice(1).join(':').trim() || errorMessage;
-          showCompactError(title, details);
-        } else {
-          toast.error(errorMessage, {
-            duration: 4000,
-            style: {
-              maxWidth: '350px',
-            }
-          });
-        }
+        // Show simple error message
+        toast.error(errorMessage, {
+          duration: 4000,
+          style: {
+            maxWidth: '400px',
+            fontSize: '14px',
+          },
+          position: 'top-center',
+        });
       },
     }
   );
@@ -164,22 +99,15 @@ const KanbanBoard = () => {
     }
   }, [tasksData]);
 
-
-
-  // Handle drag end with smooth UX and dependency validation
+  // Simple drag handling without dependency validation
   const handleDragEnd = useCallback((result) => {
     const { destination, source, draggableId } = result;
 
-    // If dropped outside a droppable area
-    if (!destination) {
-      return;
-    }
-
-    // If dropped in the same position
-    if (
+    // If dropped outside a droppable area or same position
+    if (!destination || (
       destination.droppableId === source.droppableId &&
       destination.index === source.index
-    ) {
+    )) {
       return;
     }
 
@@ -193,73 +121,42 @@ const KanbanBoard = () => {
 
     const newStatus = destColumn.status;
 
-    // Validate SYNCHRONOUSLY first - no async here
-    setIsValidating(true);
+    // Update UI immediately
+    const newColumns = columns.map(column => {
+      if (column.id === source.droppableId) {
+        const newTaskIds = [...column.taskIds];
+        newTaskIds.splice(source.index, 1);
+        return { ...column, taskIds: newTaskIds };
+      } else if (column.id === destination.droppableId) {
+        const newTaskIds = [...column.taskIds];
+        newTaskIds.splice(destination.index, 0, draggableId);
+        return { ...column, taskIds: newTaskIds };
+      }
+      return column;
+    });
 
-    // Check dependencies synchronously using the existing dependency check
-    checkTaskCanMove(task.id, newStatus)
-      .then(({ canMove, reasons }) => {
-        if (!canMove) {
-          const statusNames = { 0: 'Pending', 1: 'In Progress', 2: 'Completed', 3: 'Cancelled' };
-          const errorMessage = `Cannot move "${task.title}" to ${statusNames[newStatus]}`;
-          const reasonsList = reasons.join('\n• ');
+    setColumns(newColumns);
 
-          // Show compact error message
-          showCompactError(errorMessage, reasonsList);
-          setIsValidating(false);
-          return; // Don't make any changes - card stays in place
-        }
+    const updatedTasks = tasks.map(t =>
+      t.id.toString() === draggableId
+        ? { ...t, status: newStatus }
+        : t
+    );
+    setTasks(updatedTasks);
 
-        // If validation passes, THEN update UI optimistically
-        const newColumns = columns.map(column => {
-          if (column.id === source.droppableId) {
-            // Remove from source column
-            const newTaskIds = [...column.taskIds];
-            newTaskIds.splice(source.index, 1);
-            return { ...column, taskIds: newTaskIds };
-          } else if (column.id === destination.droppableId) {
-            // Add to destination column
-            const newTaskIds = [...column.taskIds];
-            newTaskIds.splice(destination.index, 0, draggableId);
-            return { ...column, taskIds: newTaskIds };
-          }
-          return column;
-        });
+    // Update backend
+    const updateData = {
+      title: task.title,
+      description: task.description || '',
+      status: newStatus,
+      priority: task.priority,
+      dueDate: task.dueDate,
+      userId: task.userId || 1,
+      categoryId: task.categoryId,
+    };
 
-        // Update local state after validation passes
-        setColumns(newColumns);
-
-        // Update task in local tasks array
-        const updatedTasks = tasks.map(t =>
-          t.id.toString() === draggableId
-            ? { ...t, status: newStatus }
-            : t
-        );
-        setTasks(updatedTasks);
-
-        // Update backend
-        const updateData = {
-          title: task.title,
-          description: task.description || '',
-          status: newStatus,
-          priority: task.priority,
-          dueDate: task.dueDate,
-          userId: task.userId || 1,
-          categoryId: task.categoryId,
-        };
-
-        updateTaskMutation.mutate({ taskId: task.id, updateData });
-        setIsValidating(false);
-      })
-      .catch(error => {
-        console.error('Error during drag operation:', error);
-
-        // Show detailed error message if available
-        const errorMessage = error.response?.data || error.message || 'Unable to verify dependencies. Please try again.';
-        showCompactError('Failed to move task', errorMessage);
-        setIsValidating(false);
-      });
-  }, [columns, tasks, updateTaskMutation, checkTaskCanMove]);
+    updateTaskMutation.mutate({ taskId: task.id, updateData });
+  }, [columns, tasks, updateTaskMutation]);
 
   // Get tasks for a specific column
   const getTasksForColumn = (column) => {
@@ -279,7 +176,7 @@ const KanbanBoard = () => {
   return (
     <div className="h-full">
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex gap-6 overflow-x-auto pb-6 h-full">
+        <div className="flex gap-6 pb-6 h-full">
           {columns.map((column, index) => (
             <KanbanColumn
               key={column.id}

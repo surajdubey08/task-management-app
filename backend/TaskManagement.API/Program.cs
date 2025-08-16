@@ -39,7 +39,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITaskCommentService, TaskCommentService>();
 builder.Services.AddScoped<ITaskActivityService, TaskActivityService>();
-builder.Services.AddScoped<ITaskDependencyService, TaskDependencyService>();
+
 
 // Repositories
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
@@ -47,7 +47,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
 builder.Services.AddScoped<ITaskActivityRepository, TaskActivityRepository>();
-builder.Services.AddScoped<ITaskDependencyRepository, TaskDependencyRepository>();
+
 
 // CORS
 builder.Services.AddCors(options =>

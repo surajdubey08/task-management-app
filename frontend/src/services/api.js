@@ -75,14 +75,6 @@ export const taskActivitiesApi = {
   getByTaskId: (taskId) => api.get(`/tasks/${taskId}/activities`),
 };
 
-// Task Dependencies API
-export const taskDependenciesApi = {
-  getByTaskId: (taskId) => api.get(`/tasks/${taskId}/dependencies`),
-  getTaskWithDependencies: (taskId) => api.get(`/tasks/${taskId}/dependencies/with-details`),
-  create: (taskId, data) => api.post(`/tasks/${taskId}/dependencies`, data),
-  delete: (dependencyId) => api.delete(`/dependencies/${dependencyId}`),
-  canTaskStart: (taskId) => api.get(`/tasks/${taskId}/dependencies/can-start`),
-  getBlockingReasons: (taskId) => api.get(`/tasks/${taskId}/dependencies/blocking-reasons`),
-};
+
 
 export default api;

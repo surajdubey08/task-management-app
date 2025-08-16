@@ -8,7 +8,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import TaskComments from '../components/TaskComments';
 import TaskActivity from '../components/TaskActivity';
-import TaskDependencies from '../components/TaskDependencies';
+
 
 const TaskDetail = () => {
   const { id } = useParams();
@@ -178,10 +178,7 @@ const TaskDetail = () => {
               </div>
             </div>
 
-            {/* Dependencies section */}
-            <div className="card mt-8">
-              <TaskDependencies taskId={task.id} currentUserId={1} />
-            </div>
+
 
             {/* Comments section */}
             <div className="card mt-8">

@@ -123,11 +123,11 @@ const Layout = ({ children }) => {
 
       {/* Desktop sidebar */}
       {isDesktop && (
-        <div className="fixed top-0 left-0 w-72 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl z-30">
+        <div className="fixed top-0 left-0 w-64 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl z-30">
           <div className="flex flex-col h-full">
             {/* Desktop sidebar header */}
-            <div className="flex h-16 items-center px-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center gap-3">
+            <div className="flex h-16 items-center px-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                   <CheckSquare size={16} className="text-white" />
                 </div>
@@ -136,14 +136,14 @@ const Layout = ({ children }) => {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto">
               {navigation.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
+                    className={`group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                       isActive(item.href)
                         ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400'
@@ -164,10 +164,10 @@ const Layout = ({ children }) => {
       )}
 
       {/* Main content */}
-      <div className={`min-h-screen transition-all duration-300 ${isDesktop ? 'ml-72' : 'ml-0'}`}>
+      <div className={`min-h-screen transition-all duration-300 ${isDesktop ? 'ml-64' : 'ml-0'}`}>
         {/* Modern top header */}
         <header className="sticky top-0 z-20 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
-          <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between px-4 sm:px-6">
             {/* Left side */}
             <div className="flex items-center gap-4">
               {!isDesktop && (
@@ -186,7 +186,7 @@ const Layout = ({ children }) => {
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="pl-10 pr-4 py-2 w-64 text-sm bg-gray-100 dark:bg-gray-700 border-0 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
+                  className="pl-14 pr-4 py-2 w-48 text-sm bg-gray-100 dark:bg-gray-700 border-0 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
                 />
               </div>
             </div>

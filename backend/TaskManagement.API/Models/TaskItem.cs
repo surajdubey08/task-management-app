@@ -50,8 +50,6 @@ namespace TaskManagement.API.Models
         public virtual ICollection<TaskComment> Comments { get; set; } = new List<TaskComment>();
         public virtual ICollection<TaskActivity> Activities { get; set; } = new List<TaskActivity>();
 
-        // Task Dependencies
-        public virtual ICollection<TaskDependency> Dependencies { get; set; } = new List<TaskDependency>();
-        public virtual ICollection<TaskDependency> DependentTasks { get; set; } = new List<TaskDependency>();
+
     }
 }

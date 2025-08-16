@@ -33,7 +33,7 @@ const KanbanColumn = ({ column, tasks, index }) => {
       {/* Column Header */}
       <div className={`
         rounded-lg p-4 mb-4 border-2 ${colors.bg} ${colors.border}
-        flex items-center justify-between
+        flex items-center justify-between flex-shrink-0
       `}>
         <div className="flex items-center gap-3">
           <span className="text-2xl">{icon}</span>
@@ -46,7 +46,7 @@ const KanbanColumn = ({ column, tasks, index }) => {
             </p>
           </div>
         </div>
-        
+
         {/* Add Task Button */}
         <Link
           to="/tasks/new"
@@ -60,31 +60,34 @@ const KanbanColumn = ({ column, tasks, index }) => {
         </Link>
       </div>
 
-      {/* Droppable Area */}
+      {/* Droppable Area - No Scrollbars */}
       <Droppable droppableId={column.id}>
         {(provided, snapshot) => (
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={`
-              flex-1 min-h-96 p-3 rounded-lg transition-all duration-200
-              ${snapshot.isDraggingOver 
-                ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 border-dashed' 
+              flex-1 p-3 rounded-lg transition-all duration-200
+              ${snapshot.isDraggingOver
+                ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 border-dashed'
                 : 'bg-gray-50 dark:bg-gray-800/50 border-2 border-transparent'
               }
             `}
+            style={{ minHeight: '400px' }}
           >
             {/* Task Cards */}
-            {tasks.map((task, index) => (
-              <KanbanCard
-                key={task.id}
-                task={task}
-                index={index}
-              />
-            ))}
-            
+            <div className="space-y-3">
+              {tasks.map((task, index) => (
+                <KanbanCard
+                  key={task.id}
+                  task={task}
+                  index={index}
+                />
+              ))}
+            </div>
+
             {provided.placeholder}
-            
+
             {/* Empty State */}
             {tasks.length === 0 && (
               <div className="flex flex-col items-center justify-center h-64 text-gray-400 dark:text-gray-600">

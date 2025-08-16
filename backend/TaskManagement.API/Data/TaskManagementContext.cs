@@ -16,7 +16,7 @@ namespace TaskManagement.API.Data
         public DbSet<TaskItem> Tasks { get; set; }
         public DbSet<TaskComment> TaskComments { get; set; }
         public DbSet<TaskActivity> TaskActivities { get; set; }
-        public DbSet<TaskDependency> TaskDependencies { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -96,33 +96,7 @@ namespace TaskManagement.API.Data
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // TaskDependency configuration
-            modelBuilder.Entity<TaskDependency>(entity =>
-            {
-                entity.HasKey(e => e.Id);
 
-                entity.HasOne(e => e.Task)
-                      .WithMany(t => t.Dependencies)
-                      .HasForeignKey(e => e.TaskId)
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(e => e.DependentTask)
-                      .WithMany(t => t.DependentTasks)
-                      .HasForeignKey(e => e.DependentTaskId)
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(e => e.CreatedByUser)
-                      .WithMany()
-                      .HasForeignKey(e => e.CreatedByUserId)
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                // Prevent self-referencing dependencies
-                entity.ToTable(t => t.HasCheckConstraint("CK_TaskDependency_NoSelfReference", "TaskId != DependentTaskId"));
-
-                // Unique constraint to prevent duplicate dependencies
-                entity.HasIndex(e => new { e.TaskId, e.DependentTaskId, e.DependencyType })
-                      .IsUnique();
-            });
 
             // Seed data
             SeedData(modelBuilder);
