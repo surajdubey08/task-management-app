@@ -29,7 +29,7 @@ const KanbanColumn = ({ column, tasks, index }) => {
   const icon = getColumnIcon(column.status);
 
   return (
-    <div className="flex flex-col h-full min-w-80 max-w-80">
+    <div className="flex flex-col h-full min-w-80 max-w-80 flex-shrink-0">
       {/* Column Header */}
       <div className={`
         rounded-lg p-4 mb-4 border-2 ${colors.bg} ${colors.border}

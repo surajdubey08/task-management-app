@@ -174,7 +174,7 @@ const KanbanBoard = () => {
   return (
     <div className="h-full">
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex gap-6 pb-6 h-full">
+        <div className="flex gap-6 pb-6 h-full overflow-x-auto overflow-y-hidden">
           {columns.map((column, index) => (
             <KanbanColumn
               key={column.id}

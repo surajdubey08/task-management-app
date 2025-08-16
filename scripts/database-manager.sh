@@ -182,12 +182,17 @@ clear_data() {
         local task_count=$(echo "$tasks" | jq '. | length' 2>/dev/null || echo "0")
 
         if [ "$task_count" -gt 0 ]; then
-            echo "$tasks" | jq -r '.[].id' | while read -r task_id; do
-                if ! api_call "DELETE" "/api/tasks/$task_id" > /dev/null; then
+            local task_ids=$(echo "$tasks" | jq -r '.[].id')
+            local deleted_count=0
+
+            for task_id in $task_ids; do
+                if api_call "DELETE" "/api/tasks/$task_id" > /dev/null; then
+                    deleted_count=$((deleted_count + 1))
+                else
                     log_warning "Failed to delete task $task_id"
                 fi
             done
-            log_success "Deleted $task_count tasks"
+            log_success "Deleted $deleted_count tasks"
         else
             log_info "No tasks to delete"
         fi
@@ -202,12 +207,17 @@ clear_data() {
         local category_count=$(echo "$categories" | jq '. | length' 2>/dev/null || echo "0")
 
         if [ "$category_count" -gt 0 ]; then
-            echo "$categories" | jq -r '.[].id' | while read -r category_id; do
-                if ! api_call "DELETE" "/api/categories/$category_id" > /dev/null; then
+            local category_ids=$(echo "$categories" | jq -r '.[].id')
+            local deleted_count=0
+
+            for category_id in $category_ids; do
+                if api_call "DELETE" "/api/categories/$category_id" > /dev/null; then
+                    deleted_count=$((deleted_count + 1))
+                else
                     log_warning "Failed to delete category $category_id"
                 fi
             done
-            log_success "Deleted $category_count categories"
+            log_success "Deleted $deleted_count categories"
         else
             log_info "No categories to delete"
         fi
@@ -222,12 +232,17 @@ clear_data() {
         local user_count=$(echo "$users" | jq '. | length' 2>/dev/null || echo "0")
 
         if [ "$user_count" -gt 0 ]; then
-            echo "$users" | jq -r '.[].id' | while read -r user_id; do
-                if ! api_call "DELETE" "/api/users/$user_id" > /dev/null; then
+            local user_ids=$(echo "$users" | jq -r '.[].id')
+            local deleted_count=0
+
+            for user_id in $user_ids; do
+                if api_call "DELETE" "/api/users/$user_id" > /dev/null; then
+                    deleted_count=$((deleted_count + 1))
+                else
                     log_warning "Failed to delete user $user_id"
                 fi
             done
-            log_success "Deleted $user_count users"
+            log_success "Deleted $deleted_count users"
         else
             log_info "No users to delete"
         fi
@@ -505,7 +520,7 @@ show_status() {
             echo "     Database Size: $file_size"
             log_success "✓ Database file exists"
         else
-            log_warning "⚠ Database file does not exist: $DB_FILE"
+            log_info "ℹ Database file not found: $DB_FILE (normal for in-memory/temporary databases)"
         fi
     else
         log_warning "✗ API is not accessible at $API_URL"
@@ -515,7 +530,7 @@ show_status() {
             echo "  Database Size: $file_size"
             log_info "Database file exists but API is not running"
         else
-            log_warning "Database file does not exist: $DB_FILE"
+            log_info "Database file not found: $DB_FILE (normal for in-memory/temporary databases)"
         fi
 
         echo ""

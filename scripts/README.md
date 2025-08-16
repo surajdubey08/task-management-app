@@ -216,12 +216,13 @@ Install SQLite3 using your system's package manager or download from the officia
 ### "jq is not installed" (Bash script only)
 Install jq using your system's package manager: `sudo apt install jq` or `brew install jq`.
 
-### "Database file does not exist"
-Run the .NET application first to create the database schema:
-```bash
-cd backend/TaskManagement.API
-dotnet run
-```
+### "Database file not found" (Informational)
+This message is normal and indicates that the SQLite database file is not found on disk. This can happen when:
+- The database is created in-memory or temporarily
+- The database file is created in a different location than expected
+- The application uses Entity Framework's `EnsureCreated()` method
+
+This does not affect functionality - the database operations work correctly through the API.
 
 ### "Sample data file not found"
 Ensure the `scripts/sample-data.json` file exists or set the `SAMPLE_DATA_FILE` environment variable to the correct path.
