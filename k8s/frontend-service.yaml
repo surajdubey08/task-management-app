@@ -15,22 +15,25 @@ spec:
     name: http
   selector:
     app: taskmanagement-frontend
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: taskmanagement-frontend-service-nodeport
-  namespace: taskmanagement
-  labels:
-    app: taskmanagement-frontend
-    tier: frontend
-spec:
-  type: NodePort
-  ports:
-  - port: 80
-    targetPort: 8080
-    nodePort: 30080
-    protocol: TCP
-    name: http
-  selector:
-    app: taskmanagement-frontend
+# Alternative NodePort Service (for on-premises or development)
+# Uncomment and apply if LoadBalancer is not available:
+#
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: taskmanagement-frontend-service-nodeport
+#   namespace: taskmanagement
+#   labels:
+#     app: taskmanagement-frontend
+#     tier: frontend
+# spec:
+#   type: NodePort
+#   ports:
+#   - port: 80
+#     targetPort: 8080
+#     nodePort: 30080
+#     protocol: TCP
+#     name: http
+#   selector:
+#     app: taskmanagement-frontend

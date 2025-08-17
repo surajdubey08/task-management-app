@@ -7,11 +7,13 @@ This document provides a complete guide for deploying the TaskFlow application t
 ## 🎯 **Quick Deployment**
 
 ### Prerequisites
+
 - Kubernetes cluster access with `kubectl` configured
 - Container registry access (for production deployments)
 - Image pull secrets configured in target namespace
 
 ### Production Deployment
+
 ```bash
 # 1. Validate configuration
 ./scripts/k8s-validate.sh
@@ -32,6 +34,7 @@ This document provides a complete guide for deploying the TaskFlow application t
 ```
 
 ### Development Deployment
+
 ```bash
 # Deploy with local images
 ./scripts/k8s-deploy.sh deploy
@@ -43,6 +46,7 @@ This document provides a complete guide for deploying the TaskFlow application t
 ## 🔧 **Configuration Architecture**
 
 ### Placeholder System
+
 The deployment uses a dynamic placeholder system for maximum flexibility:
 
 | Placeholder | Purpose | Example Value |
@@ -52,6 +56,7 @@ The deployment uses a dynamic placeholder system for maximum flexibility:
 | `IMAGE_PULL_SECRET_PLACEHOLDER` | Registry authentication | `my-registry-secret` |
 
 ### Deployment Components
+
 - **Namespace**: `taskmanagement` (configurable)
 - **API Deployment**: 2 replicas with health checks
 - **Frontend Deployment**: 2 replicas with nginx proxy
@@ -62,6 +67,7 @@ The deployment uses a dynamic placeholder system for maximum flexibility:
 ## 🚀 **Deployment Commands**
 
 ### Core Commands
+
 ```bash
 # Deploy application
 ./scripts/k8s-deploy.sh [OPTIONS] deploy
@@ -80,6 +86,7 @@ The deployment uses a dynamic placeholder system for maximum flexibility:
 ```
 
 ### Parameters
+
 | Parameter | Description | Required | Example |
 |-----------|-------------|----------|---------|
 | `--namespace NAME` | Kubernetes namespace | No | `--namespace production` |
@@ -92,6 +99,7 @@ The deployment uses a dynamic placeholder system for maximum flexibility:
 ## 🔐 **Security Configuration**
 
 ### Image Pull Secrets
+
 ```bash
 # Create image pull secret
 kubectl create secret docker-registry my-registry-secret \
@@ -103,6 +111,7 @@ kubectl create secret docker-registry my-registry-secret \
 ```
 
 ### Security Features
+
 - **Non-root containers**: All containers run as user 1001
 - **Read-only root filesystem**: Where applicable
 - **Dropped capabilities**: ALL capabilities dropped
@@ -112,6 +121,7 @@ kubectl create secret docker-registry my-registry-secret \
 ## 🌐 **Access Methods**
 
 ### Internal Access (Cluster)
+
 ```bash
 # API Service
 http://taskmanagement-api-service.taskmanagement.svc.cluster.local
@@ -121,20 +131,41 @@ http://taskmanagement-frontend-service.taskmanagement.svc.cluster.local
 ```
 
 ### External Access
+
+#### LoadBalancer (Default - Cloud Environments)
+
 ```bash
-# LoadBalancer (cloud environments)
+# Get external IP (cloud providers)
 kubectl get svc taskmanagement-frontend-service -n taskmanagement
 
-# NodePort (any K8s cluster)
-http://<node-ip>:30080
+# Access via external IP
+http://<external-ip>
+```
 
-# Ingress (with ingress controller)
+#### NodePort (On-Premises/Development)
+
+If LoadBalancer is not available, enable NodePort service:
+
+```bash
+# Uncomment NodePort service in k8s/frontend-service.yaml
+# Then apply the configuration
+kubectl apply -f k8s/frontend-service.yaml
+
+# Access via node IP
+http://<node-ip>:30080
+```
+
+#### Ingress (Advanced)
+
+```bash
+# With ingress controller configured
 http://taskmanagement.local
 ```
 
 ## 📊 **Resource Configuration**
 
 ### API Deployment
+
 ```yaml
 resources:
   requests:
@@ -146,6 +177,7 @@ resources:
 ```
 
 ### Frontend Deployment
+
 ```yaml
 resources:
   requests:
@@ -159,10 +191,12 @@ resources:
 ## 🔍 **Monitoring & Health Checks**
 
 ### Health Endpoints
+
 - **API Health**: `/health`
 - **Frontend Health**: `/health`
 
 ### Probes Configuration
+
 ```yaml
 livenessProbe:
   httpGet:
@@ -182,6 +216,7 @@ readinessProbe:
 ## 🛠️ **Database Management**
 
 ### Kubernetes Database Operations
+
 ```bash
 # Check database status
 ./scripts/k8s-database-manager.sh status
@@ -199,6 +234,7 @@ readinessProbe:
 ## 🔄 **CI/CD Integration**
 
 ### Pipeline Example
+
 ```yaml
 stages:
   - validate:
@@ -222,6 +258,7 @@ stages:
 ### Common Issues
 
 #### Image Pull Errors
+
 ```bash
 # Check image pull secret
 kubectl get secrets -n taskmanagement
@@ -231,6 +268,7 @@ kubectl describe secret my-registry-secret -n taskmanagement
 ```
 
 #### Pod Startup Issues
+
 ```bash
 # Check pod logs
 kubectl logs -f deployment/taskmanagement-api -n taskmanagement
@@ -240,6 +278,7 @@ kubectl describe pod <pod-name> -n taskmanagement
 ```
 
 #### Service Connectivity
+
 ```bash
 # Test service endpoints
 kubectl port-forward svc/taskmanagement-api-service 8080:80 -n taskmanagement
@@ -251,6 +290,7 @@ kubectl describe svc taskmanagement-api-service -n taskmanagement
 ## ✅ **Validation Checklist**
 
 Before deployment, ensure:
+
 - [ ] Kubernetes cluster is accessible
 - [ ] Image pull secrets are configured
 - [ ] Registry images are available
