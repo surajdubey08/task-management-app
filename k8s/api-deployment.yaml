@@ -24,7 +24,7 @@ spec:
         fsGroup: 1001
       containers:
       - name: taskmanagement-api
-        image: taskmanagement-api:latest
+        image: API_IMAGE_PLACEHOLDER
         imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
@@ -80,7 +80,7 @@ spec:
         - name: logs-volume
           mountPath: /app/logs
       imagePullSecrets:
-      - name: sre-jfrog-artifactory
+      - name: IMAGE_PULL_SECRET_PLACEHOLDER
       volumes:
       - name: logs-volume
         emptyDir: {}

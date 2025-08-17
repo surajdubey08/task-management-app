@@ -319,29 +319,49 @@ Interactive API documentation available at `/swagger` endpoint when running the 
 
 **✅ DEPLOYMENT READY** - All configurations validated and optimized for K8s.
 
-#### Quick Deploy
+#### Production Deployment
 
 ```bash
-# Validate configuration
+# 1. Validate configuration
 ./scripts/k8s-validate.sh
 
-# Deploy to Kubernetes
+# 2. Deploy with registry images
+./scripts/k8s-deploy.sh \
+  --registry my.company.com/taskflow \
+  --image-tag v1.0.0 \
+  --image-pull-secret my-registry-secret \
+  deploy
+
+# 3. Verify deployment
+./scripts/k8s-deploy.sh status
+
+# 4. Populate database
+./scripts/k8s-database-manager.sh populate
+```
+
+#### Development Deployment
+
+```bash
+# Deploy with local images (no registry required)
 ./scripts/k8s-deploy.sh deploy
 
 # Check status
 ./scripts/k8s-deploy.sh status
-
-# Manage database (populate with sample data)
-./scripts/k8s-database-manager.sh populate
 ```
 
-#### Access Points
+#### Access Methods
 
 - **LoadBalancer**: `kubectl get svc taskmanagement-frontend-service -n taskmanagement`
 - **NodePort**: `http://<node-ip>:30080`
-- **Ingress**: `http://taskmanagement.local`
+- **Ingress**: `http://taskmanagement.local` (requires ingress controller)
 
-See [K8S-DEPLOYMENT-CHECKLIST.md](K8S-DEPLOYMENT-CHECKLIST.md) for complete deployment details.
+#### Configuration Requirements
+
+- **Registry Deployments**: Must specify `--image-pull-secret` when using `--registry`
+- **Image Pull Secrets**: Must exist in target namespace before deployment
+- **Namespace**: Defaults to `taskmanagement`, customizable with `--namespace`
+
+See [K8S-DEPLOYMENT-CHECKLIST.md](K8S-DEPLOYMENT-CHECKLIST.md) for complete deployment guide.
 
 ### Environment Variables
 

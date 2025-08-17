@@ -24,7 +24,7 @@ spec:
         fsGroup: 1001
       containers:
       - name: taskmanagement-frontend
-        image: taskmanagement-frontend:latest
+        image: FRONTEND_IMAGE_PLACEHOLDER
         imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
@@ -75,7 +75,7 @@ spec:
         configMap:
           name: nginx-config
       imagePullSecrets:
-      - name: sre-jfrog-artifactory
+      - name: IMAGE_PULL_SECRET_PLACEHOLDER
       initContainers:
       - name: wait-for-api
         image: busybox:1.35

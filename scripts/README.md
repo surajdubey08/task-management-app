@@ -1,28 +1,39 @@
 # TaskFlow Automation Scripts
 
-This directory contains comprehensive automation scripts for building, deploying, and managing the TaskFlow application across different environments.
+Enterprise-grade automation scripts for building, deploying, and managing the TaskFlow application across development, staging, and production environments.
 
-## 📋 Available Scripts
+## 📋 Script Overview
 
-### 1. **build-deploy.sh** - Build and Deployment Automation
+| Script | Purpose | Environment | Key Features |
+|--------|---------|-------------|--------------|
+| `build-deploy.sh` | Build & Container Management | Local/Docker | Multi-stage builds, registry push, cleanup |
+| `k8s-deploy.sh` | Kubernetes Deployment | K8s Clusters | Multi-environment, scaling, rollback |
+| `database-manager.sh` | Database Operations | Local/Docker | API-based data management |
+| `k8s-database-manager.sh` | Database Operations | Kubernetes | Port forwarding, service discovery |
+| `k8s-validate.sh` | Configuration Validation | Pre-deployment | Comprehensive validation checks |
 
-Comprehensive script for building, deploying, and managing TaskFlow application containers.
+## 🎯 Quick Start
 
-### 2. **k8s-deploy.sh** - Kubernetes Deployment Management
+### Development Workflow
+```bash
+# Build and run locally
+./scripts/build-deploy.sh --build-run
 
-Complete Kubernetes deployment automation with support for multiple environments.
+# Populate with sample data
+./scripts/database-manager.sh populate
+```
 
-### 3. **database-manager.sh** - Database Operations (Local/Docker)
+### Production Deployment
+```bash
+# Build and push to registry
+./scripts/build-deploy.sh --push-registry my.company.com/taskflow --tag v1.0.0
 
-Database management for local development and Docker Compose environments.
+# Validate Kubernetes configuration
+./scripts/k8s-validate.sh
 
-### 4. **k8s-database-manager.sh** - Database Operations (Kubernetes)
-
-Database management for applications running in Kubernetes clusters.
-
-### 5. **k8s-validate.sh** - Kubernetes Configuration Validation
-
-Pre-deployment validation of all Kubernetes configurations.
+# Deploy to Kubernetes
+./scripts/k8s-deploy.sh --registry my.company.com/taskflow --image-tag v1.0.0 --image-pull-secret my-secret deploy
+```
 
 ## 🔧 Prerequisites
 
@@ -166,9 +177,15 @@ Complete Kubernetes deployment automation with support for multiple environments
 | `--namespace NAME` | Kubernetes namespace | `taskmanagement` | `--namespace production` |
 | `--image-tag TAG` | Docker image tag | `latest` | `--image-tag v1.0.0` |
 | `--registry PATH` | Registry path for images | - | `--registry my.company.com/taskflow` |
+| `--image-pull-secret NAME` | Image pull secret name (required with registry) | `sre-jfrog-artifactory` | `--image-pull-secret my-secret` |
 | `--replicas NUM` | Number of replicas for scaling | - | `--replicas 5` |
 | `--dry-run` | Show what would be deployed | - | `--dry-run` |
 | `--help` | Show help message | - | `--help` |
+
+### Configuration Requirements
+- **Registry Deployments**: Must specify `--image-pull-secret` when using `--registry`
+- **Image Pull Secrets**: Must exist in target namespace before deployment
+- **Placeholder System**: Uses `API_IMAGE_PLACEHOLDER`, `FRONTEND_IMAGE_PLACEHOLDER`, and `IMAGE_PULL_SECRET_PLACEHOLDER` for dynamic configuration
 
 ### Use Cases
 
@@ -189,7 +206,7 @@ Complete Kubernetes deployment automation with support for multiple environments
 
 ```bash
 # Deploy from registry
-./scripts/k8s-deploy.sh --registry my.company.com/taskflow --image-tag v1.2.3 deploy
+./scripts/k8s-deploy.sh --registry my.company.com/taskflow --image-tag v1.2.3 --image-pull-secret sre-jfrog-artifactory deploy
 
 # Scale for high availability
 ./scripts/k8s-deploy.sh --replicas 5 scale
@@ -321,22 +338,34 @@ Pre-deployment validation of all Kubernetes configurations to ensure deployment 
 ### Production Deployment Workflow
 
 ```bash
-# 1. Build and push images
+# 1. Build and push images to registry
 docker login my.company.com
 ./scripts/build-deploy.sh --push-registry my.company.com/taskflow --tag v1.0.0
 
 # 2. Validate Kubernetes configuration
 ./scripts/k8s-validate.sh
 
-# 3. Deploy to Kubernetes
-./scripts/k8s-deploy.sh --namespace production --registry my.company.com/taskflow --image-tag v1.0.0 deploy
+# 3. Deploy to Kubernetes with registry images
+./scripts/k8s-deploy.sh \
+  --namespace production \
+  --registry my.company.com/taskflow \
+  --image-tag v1.0.0 \
+  --image-pull-secret my-registry-secret \
+  deploy
 
-# 4. Populate database in K8s
+# 4. Populate database with sample data
 ./scripts/k8s-database-manager.sh --namespace production populate
 
-# 5. Verify deployment
+# 5. Verify deployment status
 ./scripts/k8s-deploy.sh --namespace production status
 ```
+
+### Key Features
+- **Placeholder-Based Configuration**: Uses dynamic placeholders for images and secrets
+- **Multi-Environment Support**: Consistent deployment across dev, staging, and production
+- **Validation Pipeline**: Pre-deployment validation prevents configuration errors
+- **Registry Integration**: Seamless integration with container registries
+- **Security**: Configurable image pull secrets for private registries
 
 ---
 

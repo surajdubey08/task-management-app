@@ -264,7 +264,8 @@ push_to_registry() {
 
     echo
     print_color $YELLOW "💡 To deploy these images to Kubernetes:"
-    print_color $YELLOW "   ./scripts/k8s-deploy.sh --registry ${REGISTRY_PATH} --image-tag ${IMAGE_TAG} deploy"
+    print_color $YELLOW "   ./scripts/k8s-deploy.sh --registry ${REGISTRY_PATH} --image-tag ${IMAGE_TAG} --image-pull-secret <secret-name> deploy"
+    print_color $YELLOW "   Example: ./scripts/k8s-deploy.sh --registry ${REGISTRY_PATH} --image-tag ${IMAGE_TAG} --image-pull-secret sre-jfrog-artifactory deploy"
 }
 
 # Function to show application status

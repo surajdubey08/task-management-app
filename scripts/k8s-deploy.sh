@@ -20,6 +20,7 @@ NAMESPACE="taskmanagement"
 ACTION=""
 IMAGE_TAG="latest"
 REGISTRY_PATH=""
+IMAGE_PULL_SECRET=""
 DRY_RUN=false
 WAIT_TIMEOUT=300
 REPLICAS=""
@@ -58,13 +59,14 @@ ACTIONS:
     restart            Restart deployments
 
 OPTIONS:
-    --namespace NAME    Kubernetes namespace (default: taskmanagement)
-    --image-tag TAG     Docker image tag (default: latest)
-    --registry PATH     Registry path for images
-    --replicas NUM      Number of replicas for scaling
-    --dry-run          Show what would be deployed without applying
-    --wait-timeout SEC  Timeout for waiting operations (default: 300)
-    --help             Show this help message
+    --namespace NAME         Kubernetes namespace (default: taskmanagement)
+    --image-tag TAG          Docker image tag (default: latest)
+    --registry PATH          Registry path for images
+    --image-pull-secret NAME Image pull secret name (required when using registry)
+    --replicas NUM           Number of replicas for scaling
+    --dry-run               Show what would be deployed without applying
+    --wait-timeout SEC       Timeout for waiting operations (default: 300)
+    --help                  Show this help message
 
 EXAMPLES:
     # Deploy application
@@ -74,7 +76,7 @@ EXAMPLES:
     $0 --image-tag v1.2.3 deploy
 
     # Deploy with registry images
-    $0 --registry my.company.com/taskflow deploy
+    $0 --registry my.company.com/taskflow --image-pull-secret sre-jfrog-artifactory deploy
 
     # Scale application
     $0 --replicas 3 scale
@@ -161,15 +163,26 @@ update_image_tags() {
     
     print_color $BLUE "🏷️ API Image: $api_image"
     print_color $BLUE "🏷️ Frontend Image: $frontend_image"
-    
+
+    # Set default image pull secret if not provided
+    local image_pull_secret="$IMAGE_PULL_SECRET"
+    if [ -z "$image_pull_secret" ]; then
+        image_pull_secret="sre-jfrog-artifactory"  # Default value
+    fi
+    print_color $BLUE "🔐 Image Pull Secret: $image_pull_secret"
+
     # Create temporary manifests with updated images
     mkdir -p /tmp/taskflow-k8s
-    
-    # Update API deployment
-    sed "s|image: task-management-app-api.*|image: $api_image|g" k8s/api-deployment.yaml > /tmp/taskflow-k8s/api-deployment.yaml
-    
-    # Update Frontend deployment
-    sed "s|image: task-management-app-frontend.*|image: $frontend_image|g" k8s/frontend-deployment.yaml > /tmp/taskflow-k8s/frontend-deployment.yaml
+
+    # Update API deployment with image and image pull secret
+    sed -e "s|API_IMAGE_PLACEHOLDER|$api_image|g" \
+        -e "s|IMAGE_PULL_SECRET_PLACEHOLDER|$image_pull_secret|g" \
+        k8s/api-deployment.yaml > /tmp/taskflow-k8s/api-deployment.yaml
+
+    # Update Frontend deployment with image and image pull secret
+    sed -e "s|FRONTEND_IMAGE_PLACEHOLDER|$frontend_image|g" \
+        -e "s|IMAGE_PULL_SECRET_PLACEHOLDER|$image_pull_secret|g" \
+        k8s/frontend-deployment.yaml > /tmp/taskflow-k8s/frontend-deployment.yaml
     
     # Copy other manifests
     cp k8s/namespace.yaml /tmp/taskflow-k8s/ 2>/dev/null || true
@@ -372,6 +385,10 @@ while [[ $# -gt 0 ]]; do
             REGISTRY_PATH="$2"
             shift 2
             ;;
+        --image-pull-secret)
+            IMAGE_PULL_SECRET="$2"
+            shift 2
+            ;;
         --replicas)
             REPLICAS="$2"
             shift 2
@@ -404,6 +421,13 @@ done
 if [ -z "$ACTION" ]; then
     print_color $RED "❌ No action specified"
     show_usage
+    exit 1
+fi
+
+# Validate registry and image pull secret dependency
+if [ -n "$REGISTRY_PATH" ] && [ -z "$IMAGE_PULL_SECRET" ]; then
+    print_color $RED "❌ Image pull secret is required when using a registry"
+    print_color $YELLOW "💡 Use: --image-pull-secret <secret-name>"
     exit 1
 fi
 
