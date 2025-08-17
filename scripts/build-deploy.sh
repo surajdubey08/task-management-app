@@ -24,6 +24,7 @@ IMAGE_TAG="latest"
 SKIP_BUILD=false
 DETACHED=false
 FORCE_REBUILD=false
+K8S_BUILD=false
 
 # Function to print colored output
 print_color() {
@@ -57,6 +58,7 @@ OPTIONS:
     --skip-build           Skip building, only run existing images
     --detached             Run containers in detached mode
     --force-rebuild        Force rebuild without using cache
+    --k8s-build            Build for Kubernetes deployment (uses k8s-specific configs)
     --help                 Show this help message
 
 EXAMPLES:
@@ -193,7 +195,7 @@ verify_ports() {
 # Function to build application
 build_application() {
     print_header "BUILDING APPLICATION"
-    
+
     local build_args=""
     if [ "$FORCE_REBUILD" = true ]; then
         build_args="--no-cache"
@@ -201,9 +203,20 @@ build_application() {
     else
         print_color $BLUE "🔨 Building application..."
     fi
-    
-    $DOCKER_COMPOSE_CMD build $build_args --parallel
-    
+
+    if [ "$K8S_BUILD" = true ]; then
+        print_color $CYAN "🎯 Building for Kubernetes deployment..."
+
+        # Build API (same for both)
+        docker build $build_args -t task-management-app-api:$IMAGE_TAG backend/TaskManagement.API/
+
+        # Build Frontend with K8s-specific Dockerfile
+        docker build $build_args -f frontend/Dockerfile.k8s -t task-management-app-frontend:$IMAGE_TAG frontend/
+    else
+        print_color $CYAN "🐳 Building for local Docker Compose..."
+        $DOCKER_COMPOSE_CMD build $build_args --parallel
+    fi
+
     print_color $GREEN "✅ Build completed successfully!"
 }
 
@@ -313,6 +326,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --force-rebuild)
             FORCE_REBUILD=true
+            shift
+            ;;
+        --k8s-build)
+            K8S_BUILD=true
             shift
             ;;
         --help)

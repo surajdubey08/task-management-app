@@ -24,6 +24,7 @@ IMAGE_PULL_SECRET=""
 DRY_RUN=false
 WAIT_TIMEOUT=300
 REPLICAS=""
+KUBECONFIG_FILE=""
 
 # Function to print colored output
 print_color() {
@@ -39,6 +40,24 @@ print_header() {
     print_color $PURPLE "$1"
     print_color $PURPLE "=================================="
     echo
+}
+
+# Function to setup kubeconfig
+setup_kubeconfig() {
+    if [ -n "$KUBECONFIG_FILE" ]; then
+        if [ ! -f "$KUBECONFIG_FILE" ]; then
+            print_color $RED "❌ Kubeconfig file not found: $KUBECONFIG_FILE"
+            exit 1
+        fi
+        export KUBECONFIG="$KUBECONFIG_FILE"
+        print_color $GREEN "✅ Using kubeconfig: $KUBECONFIG_FILE"
+    elif [ -n "$KUBECONFIG" ]; then
+        print_color $GREEN "✅ Using KUBECONFIG environment variable: $KUBECONFIG"
+    else
+        print_color $RED "❌ No kubeconfig specified"
+        print_color $YELLOW "💡 Either set KUBECONFIG environment variable or use --kubeconfig parameter"
+        exit 1
+    fi
 }
 
 # Function to show usage
@@ -64,6 +83,7 @@ OPTIONS:
     --registry PATH          Registry path for images
     --image-pull-secret NAME Image pull secret name (required when using registry)
     --replicas NUM           Number of replicas for scaling
+    --kubeconfig FILE        Path to kubeconfig file (if not set, uses KUBECONFIG env var)
     --dry-run               Show what would be deployed without applying
     --wait-timeout SEC       Timeout for waiting operations (default: 300)
     --help                  Show this help message
@@ -104,14 +124,17 @@ EOF
 # Function to check prerequisites
 check_prerequisites() {
     print_header "CHECKING PREREQUISITES"
-    
+
+    # Setup kubeconfig first
+    setup_kubeconfig
+
     # Check kubectl
     if ! command -v kubectl &> /dev/null; then
         print_color $RED "❌ kubectl is not installed or not in PATH"
         exit 1
     fi
     print_color $GREEN "✅ kubectl found: $(kubectl version --client --short 2>/dev/null || kubectl version --client)"
-    
+
     # Check cluster connectivity
     if ! kubectl cluster-info &> /dev/null; then
         print_color $RED "❌ Cannot connect to Kubernetes cluster"
@@ -391,6 +414,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --replicas)
             REPLICAS="$2"
+            shift 2
+            ;;
+        --kubeconfig)
+            KUBECONFIG_FILE="$2"
             shift 2
             ;;
         --dry-run)

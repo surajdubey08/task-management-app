@@ -11,6 +11,7 @@ SERVICE_NAME="${SERVICE_NAME:-taskmanagement-api-service}"
 SERVICE_PORT="${SERVICE_PORT:-80}"
 SAMPLE_DATA_FILE="${SAMPLE_DATA_FILE:-scripts/sample-data.json}"
 KUBECTL_TIMEOUT="${KUBECTL_TIMEOUT:-60s}"
+KUBECONFIG_FILE="${KUBECONFIG_FILE:-}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -44,6 +45,24 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Function to setup kubeconfig
+setup_kubeconfig() {
+    if [ -n "$KUBECONFIG_FILE" ]; then
+        if [ ! -f "$KUBECONFIG_FILE" ]; then
+            log_error "Kubeconfig file not found: $KUBECONFIG_FILE"
+            exit 1
+        fi
+        export KUBECONFIG="$KUBECONFIG_FILE"
+        log_success "Using kubeconfig: $KUBECONFIG_FILE"
+    elif [ -n "$KUBECONFIG" ]; then
+        log_success "Using KUBECONFIG environment variable: $KUBECONFIG"
+    else
+        log_error "No kubeconfig specified"
+        log_info "Either set KUBECONFIG environment variable or use --kubeconfig parameter"
+        exit 1
+    fi
+}
+
 # Check if required tools are available
 check_prerequisites() {
     local missing_tools=()
@@ -70,6 +89,9 @@ check_prerequisites() {
     fi
 
     log_success "Prerequisites available (kubectl, curl, jq)"
+
+    # Setup kubeconfig
+    setup_kubeconfig
 }
 
 # Check if namespace exists
@@ -113,18 +135,27 @@ setup_port_forward() {
     local pf_pid=$!
     
     # Wait for port forward to be ready
-    sleep 3
-    
-    # Test if port forward is working
-    if curl -s -f "http://localhost:$local_port/health" > /dev/null 2>&1; then
-        log_success "Port forwarding established on localhost:$local_port"
-        echo "$pf_pid" > /tmp/k8s-db-manager-pf.pid
-        return 0
-    else
-        log_error "Failed to establish port forwarding"
-        kill $pf_pid 2>/dev/null || true
-        exit 1
-    fi
+    sleep 5
+
+    # Test if port forward is working by checking health endpoint
+    local max_attempts=10
+    local attempt=1
+
+    while [ $attempt -le $max_attempts ]; do
+        if curl -s -f "http://localhost:$local_port/health" > /dev/null 2>&1; then
+            log_success "Port forwarding established on localhost:$local_port"
+            echo "$pf_pid" > /tmp/k8s-db-manager-pf.pid
+            return 0
+        fi
+
+        log_info "Waiting for port forwarding (attempt $attempt/$max_attempts)..."
+        sleep 2
+        attempt=$((attempt + 1))
+    done
+
+    log_error "Failed to establish port forwarding after $max_attempts attempts"
+    kill $pf_pid 2>/dev/null || true
+    exit 1
 }
 
 # Cleanup port forwarding
@@ -459,14 +490,16 @@ show_usage() {
     echo "Usage: $0 [OPTIONS] COMMAND"
     echo ""
     echo "Commands:"
-    echo "  status    - Show Kubernetes deployment and data status"
-    echo "  populate  - Populate database with sample data via API"
-    echo "  clear     - Clear all data via API"
+    echo "  status         - Show Kubernetes deployment and data status"
+    echo "  populate       - Populate database with sample data via API"
+    echo "  clear          - Clear all data via API"
+    echo "  reset-populate - Clear all data and populate with sample data"
     echo ""
     echo "Options:"
     echo "  --namespace NAME    - Kubernetes namespace (default: taskmanagement)"
     echo "  --service NAME      - API service name (default: taskmanagement-api-service)"
     echo "  --port PORT         - Local port for port forwarding (default: 8080)"
+    echo "  --kubeconfig FILE   - Path to kubeconfig file"
     echo "  --force             - Skip confirmation prompts"
     echo "  --help              - Show this help message"
     echo ""
@@ -502,6 +535,10 @@ while [[ $# -gt 0 ]]; do
             LOCAL_PORT="$2"
             shift 2
             ;;
+        --kubeconfig)
+            KUBECONFIG_FILE="$2"
+            shift 2
+            ;;
         --force)
             FORCE=true
             shift
@@ -510,7 +547,7 @@ while [[ $# -gt 0 ]]; do
             show_usage
             exit 0
             ;;
-        status|populate|clear)
+        status|populate|clear|reset-populate)
             COMMAND="$1"
             shift
             ;;
@@ -568,6 +605,21 @@ case $COMMAND in
         fi
         setup_port_forward
         clear_data
+        ;;
+    reset-populate)
+        if [ "$FORCE" = false ]; then
+            echo
+            log_warning "This will clear all existing data and populate with sample data!"
+            read -p "Are you sure you want to continue? (y/N): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                log_info "Operation cancelled"
+                exit 0
+            fi
+        fi
+        setup_port_forward
+        clear_data
+        populate_data
         ;;
     *)
         log_error "Unknown command: $COMMAND"

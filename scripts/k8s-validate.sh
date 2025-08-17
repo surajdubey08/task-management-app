@@ -5,6 +5,9 @@
 
 set -e
 
+# Default values
+KUBECONFIG_FILE=""
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -39,6 +42,24 @@ log_error() {
 
 log_info() {
     print_color $BLUE "ℹ️  $1"
+}
+
+# Function to setup kubeconfig
+setup_kubeconfig() {
+    if [ -n "$KUBECONFIG_FILE" ]; then
+        if [ ! -f "$KUBECONFIG_FILE" ]; then
+            log_error "Kubeconfig file not found: $KUBECONFIG_FILE"
+            exit 1
+        fi
+        export KUBECONFIG="$KUBECONFIG_FILE"
+        log_success "Using kubeconfig: $KUBECONFIG_FILE"
+    elif [ -n "$KUBECONFIG" ]; then
+        log_success "Using KUBECONFIG environment variable: $KUBECONFIG"
+    else
+        log_error "No kubeconfig specified"
+        log_info "Either set KUBECONFIG environment variable or use --kubeconfig parameter"
+        exit 1
+    fi
 }
 
 # Validation functions
@@ -216,10 +237,56 @@ validate_health_checks() {
     fi
 }
 
+# Show usage information
+show_usage() {
+    cat << EOF
+Kubernetes Deployment Validation Script
+
+USAGE:
+    $0 [OPTIONS]
+
+OPTIONS:
+    --kubeconfig FILE    Path to kubeconfig file (if not set, uses KUBECONFIG env var)
+    --help              Show this help message
+
+EXAMPLES:
+    # Validate with default kubeconfig
+    $0
+
+    # Validate with specific kubeconfig
+    $0 --kubeconfig /path/to/kubeconfig
+
+EOF
+}
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --kubeconfig)
+            KUBECONFIG_FILE="$2"
+            shift 2
+            ;;
+        --help)
+            show_usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            show_usage
+            exit 1
+            ;;
+    esac
+done
+
 # Main validation function
 main() {
     print_header "KUBERNETES DEPLOYMENT VALIDATION"
     print_color $BLUE "🔍 Validating TaskFlow application for Kubernetes deployment..."
+
+    # Setup kubeconfig if needed for cluster-specific validations
+    if command -v kubectl &> /dev/null; then
+        setup_kubeconfig 2>/dev/null || true
+    fi
     
     local validation_failed=false
     

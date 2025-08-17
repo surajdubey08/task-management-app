@@ -8,8 +8,7 @@ data:
   ASPNETCORE_ENVIRONMENT: "Production"
   ASPNETCORE_URLS: "http://+:8080"
   
-  # Frontend configuration
-  REACT_APP_API_URL: "http://taskmanagement-api-service/api"
+  # Frontend configuration (auto-detected)
   
   # Logging configuration
   LOG_LEVEL: "Information"

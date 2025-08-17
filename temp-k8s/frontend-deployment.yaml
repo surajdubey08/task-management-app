@@ -24,7 +24,7 @@ spec:
         fsGroup: 1001
       containers:
       - name: taskmanagement-frontend
-        image: FRONTEND_IMAGE_PLACEHOLDER
+        image: sre-citizenuser-jfp-west-virtual-docker-prod001.artifacts-west.pwc.com/sre-poc-app/taskmanagement-frontend:latest
         imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
@@ -70,8 +70,24 @@ spec:
         configMap:
           name: nginx-config
       imagePullSecrets:
-      - name: IMAGE_PULL_SECRET_PLACEHOLDER
+      - name: sre-jfrog-artifactory
       initContainers:
       - name: wait-for-api
         image: busybox:1.35
         command: ['sh', '-c', 'until nc -z taskmanagement-api-service 80; do echo waiting for api; sleep 2; done;']
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: taskmanagement-frontend-service
+  namespace: taskmanagement
+  labels:
+    app: taskmanagement-frontend
+spec:
+  selector:
+    app: taskmanagement-frontend
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+  type: LoadBalancer
