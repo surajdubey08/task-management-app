@@ -24,7 +24,7 @@ spec:
         fsGroup: 1001
       containers:
       - name: taskmanagement-api
-        image: sre-citizenuser-jfp-west-virtual-docker-prod001.artifacts-west.pwc.com/sre-poc-app/taskmanagement-api:latest
+        image: taskmanagement-api:latest
         imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
