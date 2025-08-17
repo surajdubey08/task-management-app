@@ -74,7 +74,7 @@ EXAMPLES:
     $0 --image-tag v1.2.3 deploy
 
     # Deploy with registry images
-    $0 --registry myregistry.com/taskflow deploy
+    $0 --registry my.company.com/taskflow deploy
 
     # Scale application
     $0 --replicas 3 scale
@@ -153,10 +153,10 @@ update_image_tags() {
     
     local api_image="task-management-app-api:$IMAGE_TAG"
     local frontend_image="task-management-app-frontend:$IMAGE_TAG"
-    
+
     if [ -n "$REGISTRY_PATH" ]; then
-        api_image="${REGISTRY_PATH}-api:$IMAGE_TAG"
-        frontend_image="${REGISTRY_PATH}-frontend:$IMAGE_TAG"
+        api_image="${REGISTRY_PATH}/taskmanagement-api:$IMAGE_TAG"
+        frontend_image="${REGISTRY_PATH}/taskmanagement-frontend:$IMAGE_TAG"
     fi
     
     print_color $BLUE "🏷️ API Image: $api_image"

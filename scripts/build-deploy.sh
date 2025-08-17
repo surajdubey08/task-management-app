@@ -20,6 +20,7 @@ CLEANUP_ONLY=false
 BUILD_RUN_ONLY=false
 PUSH_TO_REGISTRY=false
 REGISTRY_PATH=""
+IMAGE_TAG="latest"
 SKIP_BUILD=false
 DETACHED=false
 FORCE_REBUILD=false
@@ -52,6 +53,7 @@ OPTIONS:
     --cleanup-only         Only perform cleanup and prune operations
     --build-run            Build and run the application (default if no options)
     --push-registry PATH   Build and push images to registry (requires login)
+    --tag TAG              Image tag to use (default: latest)
     --skip-build           Skip building, only run existing images
     --detached             Run containers in detached mode
     --force-rebuild        Force rebuild without using cache
@@ -64,8 +66,11 @@ EXAMPLES:
     # Only cleanup Docker resources
     $0 --cleanup-only
 
-    # Build and push to registry
-    $0 --push-registry myregistry.com/taskflow
+    # Build and push to registry with default tag
+    $0 --push-registry my.company.com/taskflow
+
+    # Build and push with custom tag
+    $0 --push-registry my.company.com/taskflow --tag v1.0.0
 
     # Run in detached mode
     $0 --build-run --detached
@@ -75,10 +80,11 @@ EXAMPLES:
 
 REGISTRY PUSH:
     To push to a registry, ensure you are logged in first:
-    docker login myregistry.com
+    docker login my.company.com
 
-    Then specify the full registry path:
-    $0 --push-registry myregistry.com/apps/taskflow:latest
+    Then specify the registry path (without image name):
+    $0 --push-registry my.company.com/taskflow
+    $0 --push-registry my.company.com/taskflow --tag v1.2.3
 
 EOF
 }
@@ -235,26 +241,30 @@ push_to_registry() {
         exit 1
     fi
     
-    # Extract registry components
-    if [[ "$REGISTRY_PATH" == *":"* ]]; then
-        REGISTRY_BASE="${REGISTRY_PATH%:*}"
-        TAG="${REGISTRY_PATH##*:}"
-    else
-        REGISTRY_BASE="$REGISTRY_PATH"
-        TAG="latest"
-    fi
-    
+    # Construct full image names using the registry path and image tag
+    local api_image="${REGISTRY_PATH}/taskmanagement-api:${IMAGE_TAG}"
+    local frontend_image="${REGISTRY_PATH}/taskmanagement-frontend:${IMAGE_TAG}"
+
     print_color $BLUE "🏷️ Tagging images for registry..."
-    docker tag task-management-app-api "${REGISTRY_BASE}-api:${TAG}"
-    docker tag task-management-app-frontend "${REGISTRY_BASE}-frontend:${TAG}"
-    
-    print_color $BLUE "📤 Pushing images to registry..."
-    docker push "${REGISTRY_BASE}-api:${TAG}"
-    docker push "${REGISTRY_BASE}-frontend:${TAG}"
-    
+    print_color $CYAN "📱 API Image: ${api_image}"
+    print_color $CYAN "🌐 Frontend Image: ${frontend_image}"
+
+    docker tag task-management-app-api "${api_image}"
+    docker tag task-management-app-frontend "${frontend_image}"
+
+    print_color $BLUE "📤 Pushing API image..."
+    docker push "${api_image}"
+
+    print_color $BLUE "📤 Pushing Frontend image..."
+    docker push "${frontend_image}"
+
     print_color $GREEN "✅ Images pushed successfully!"
-    print_color $CYAN "🏷️ API Image: ${REGISTRY_BASE}-api:${TAG}"
-    print_color $CYAN "🏷️ Frontend Image: ${REGISTRY_BASE}-frontend:${TAG}"
+    print_color $CYAN "📱 API Image: ${api_image}"
+    print_color $CYAN "🌐 Frontend Image: ${frontend_image}"
+
+    echo
+    print_color $YELLOW "💡 To deploy these images to Kubernetes:"
+    print_color $YELLOW "   ./scripts/k8s-deploy.sh --registry ${REGISTRY_PATH} --image-tag ${IMAGE_TAG} deploy"
 }
 
 # Function to show application status
@@ -286,6 +296,10 @@ while [[ $# -gt 0 ]]; do
         --push-registry)
             PUSH_TO_REGISTRY=true
             REGISTRY_PATH="$2"
+            shift 2
+            ;;
+        --tag)
+            IMAGE_TAG="$2"
             shift 2
             ;;
         --skip-build)

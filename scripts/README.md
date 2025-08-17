@@ -1,18 +1,39 @@
-# Database Management Script
+# TaskFlow Automation Scripts
 
-This directory contains a script to manage the database for the Task Management application via API calls.
+This directory contains comprehensive automation scripts for building, deploying, and managing the TaskFlow application across different environments.
 
-## Available Script
+## 📋 Available Scripts
 
-### database-manager.sh (Bash)
-A comprehensive bash script that uses the .NET application's API endpoints to manage data. Works on Unix/Linux/WSL/macOS environments.
+### 1. **build-deploy.sh** - Build and Deployment Automation
 
-## Prerequisites
+Comprehensive script for building, deploying, and managing TaskFlow application containers.
 
-- **curl**: Required for API calls
-- **jq**: Required for JSON parsing
-- **Bash**: Available in Linux, macOS, or Windows WSL
-- **.NET 8 SDK**: Required to run the API application
+### 2. **k8s-deploy.sh** - Kubernetes Deployment Management
+
+Complete Kubernetes deployment automation with support for multiple environments.
+
+### 3. **database-manager.sh** - Database Operations (Local/Docker)
+
+Database management for local development and Docker Compose environments.
+
+### 4. **k8s-database-manager.sh** - Database Operations (Kubernetes)
+
+Database management for applications running in Kubernetes clusters.
+
+### 5. **k8s-validate.sh** - Kubernetes Configuration Validation
+
+Pre-deployment validation of all Kubernetes configurations.
+
+## 🔧 Prerequisites
+
+### System Requirements
+
+- **Bash shell** (Linux/macOS/WSL)
+- **Docker & Docker Compose** (for containerized operations)
+- **kubectl** (for Kubernetes operations)
+- **curl** (for API operations)
+- **jq** (for JSON processing)
+- **.NET 8 SDK** (for local development)
 
 ### Installing Prerequisites
 
@@ -20,217 +41,371 @@ A comprehensive bash script that uses the .NET application's API endpoints to ma
 
 ```bash
 sudo apt update
-sudo apt install curl jq
+sudo apt install curl jq docker.io docker-compose kubectl
 ```
 
 **macOS:**
 
 ```bash
-brew install curl jq
+brew install curl jq docker docker-compose kubectl
 ```
 
 **Windows:**
-
 Use WSL (Windows Subsystem for Linux) and follow Ubuntu instructions above.
 
-## Key Features
+### Permissions
 
-### ✅ **No External Database Tools Required**
-- Uses the .NET application's API endpoints instead of direct database access
-- No need to install SQLite3 or other database tools
-- Works through the application's existing business logic and validation
+- Execute permissions on script files
+- Docker daemon access
+- Kubernetes cluster access (for k8s operations)
+- Network access to APIs and registries
 
-### 🔄 **API-Based Operations**
-- All operations go through the REST API endpoints
-- Respects application business rules and validation
-- Maintains data integrity through the application layer
+---
 
-### 🚀 **Auto-Start Capability**
-- Can automatically start the .NET application if not running
-- Waits for API to be ready before proceeding
-- Provides clear status information
+## 🚀 Script 1: build-deploy.sh
 
-## Usage
+### Purpose
+
+Comprehensive script for building, deploying, and managing TaskFlow application containers. Handles Docker cleanup, image building, container orchestration, and registry operations.
+
+### Usage
 
 ```bash
-# Show help
-bash scripts/database-manager.sh --help
-
-# Start the API application
-bash scripts/database-manager.sh start
-
-# Show database and API status
-bash scripts/database-manager.sh status
-
-# Populate database with sample data via API
-bash scripts/database-manager.sh populate
-
-# Clear all data via API (with confirmation)
-bash scripts/database-manager.sh clear
-
-# Clear all data via API (skip confirmation)
-bash scripts/database-manager.sh --force clear
-
-# Remove database file
-bash scripts/database-manager.sh remove
+./scripts/build-deploy.sh [OPTIONS]
 ```
 
-## Commands
+### Parameters
 
-### `start`
-Starts the .NET API application:
-- Launches the application in the background
-- Waits for the API to be ready
-- Returns when the health endpoint responds successfully
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `--cleanup-only` | Only perform cleanup and prune operations | `./scripts/build-deploy.sh --cleanup-only` |
+| `--build-run` | Build and run the application (default) | `./scripts/build-deploy.sh --build-run` |
+| `--push-registry PATH` | Build and push images to registry | `./scripts/build-deploy.sh --push-registry my.company.com/taskflow` |
+| `--tag TAG` | Image tag to use (default: latest) | `./scripts/build-deploy.sh --tag v1.0.0` |
+| `--skip-build` | Skip building, only run existing images | `./scripts/build-deploy.sh --skip-build` |
+| `--detached` | Run containers in detached mode | `./scripts/build-deploy.sh --build-run --detached` |
+| `--force-rebuild` | Force rebuild without using cache | `./scripts/build-deploy.sh --build-run --force-rebuild` |
+| `--help` | Show help message | `./scripts/build-deploy.sh --help` |
 
-### `status`
-Shows the current status of the system including:
-- API URL and connection status
-- Database file path and existence
-- Sample data file path
-- Record counts for each table (via API)
-- Database file size
+### Use Cases
 
-### `populate`
-Populates the database with comprehensive sample data via API calls:
-- **15 Users** with realistic names, emails, phone numbers, and departments across Engineering, Product Management, Design, Marketing, QA, DevOps, and Data Science
-- **10 Categories** (Frontend, Backend, Design, Testing, DevOps, Mobile, Documentation, Research, Security, Analytics) with colors and descriptions
-- **48 Tasks** across different statuses and priorities with realistic due dates, covering various aspects of software development lifecycle
-- Uses the application's business logic and validation
-- Automatically starts the API if not running
+#### 1. Development Workflow
 
-### `clear`
-Clears all data from the database via API calls:
-- Removes all records from Tasks, Categories, and Users
-- Uses proper deletion order to respect foreign key constraints
-- Goes through the application's business logic
-- Requires confirmation unless `--force` flag is used
-
-### `remove`
-Completely removes the database file:
-- Deletes the SQLite database file from the filesystem
-- Requires confirmation unless `--force` flag is used
-- Note: This bypasses the API and directly removes the file
-
-## Sample Data Structure
-
-The sample data is loaded from `scripts/sample-data.json` and includes:
-
-### Users (15 records)
-- **Engineering**: John Smith, Rachel Green, Kevin Lee
-- **Product Management**: Sarah Johnson, James Wilson
-- **Design**: Mike Chen, Maria Garcia
-- **Marketing**: Emily Davis, Amanda Taylor
-- **QA**: Alex Rodriguez, Robert Kim
-- **DevOps**: Lisa Wang, Jennifer Martinez
-- **Data Science**: David Brown, Thomas Anderson
-
-### Categories (10 records)
-- **Frontend** (#3B82F6) - React, Vue, Angular development
-- **Backend** (#10B981) - APIs, databases, server logic
-- **Design** (#F59E0B) - UI/UX, wireframes, prototypes
-- **Testing** (#EF4444) - Unit tests, integration tests, QA
-- **DevOps** (#8B5CF6) - Infrastructure, CI/CD, monitoring
-- **Mobile** (#EC4899) - iOS and Android development
-- **Documentation** (#6B7280) - Technical docs, API guides
-- **Research** (#14B8A6) - Market research, technology evaluation
-- **Security** (#DC2626) - Security audits, compliance
-- **Analytics** (#7C3AED) - Data analysis, reporting
-
-### Tasks (48 records)
-Comprehensive tasks covering the entire software development lifecycle:
-
-**Task Statuses:**
-- **Status 0**: Pending (To Do)
-- **Status 1**: In Progress
-- **Status 2**: Completed
-- **Status 3**: Cancelled
-
-**Task Priorities:**
-- **Priority 0**: Low
-- **Priority 1**: Medium
-- **Priority 2**: High
-- **Priority 3**: Critical
-
-**Task Categories Include:**
-- Authentication & Security
-- UI/UX Design & Accessibility
-- Performance & Optimization
-- Testing & Quality Assurance
-- DevOps & Infrastructure
-- Mobile Development
-- Analytics & Reporting
-- Documentation & Compliance
-- Research & Innovation
-
-## Environment Variables
-
-You can customize the script behavior using environment variables:
-
-### `DB_FILE`
-Path to the SQLite database file.
-- **Default**: `backend/TaskManagement.API/taskmanagement.db`
-- **Example**: `export DB_FILE="/path/to/custom/database.db"`
-
-### `SAMPLE_DATA_FILE`
-Path to the sample data JSON file.
-- **Default**: `scripts/sample-data.json`
-- **Example**: `export SAMPLE_DATA_FILE="/path/to/custom/data.json"`
-
-## Examples
-
-### Complete Database Reset and Population
 ```bash
-# Remove existing database
-bash scripts/database-manager.sh --force remove
+# Clean start for development
+./scripts/build-deploy.sh --cleanup-only
+./scripts/build-deploy.sh --build-run
 
-# Start the .NET application to create schema
-cd backend/TaskManagement.API
-dotnet run &
-sleep 5
-curl http://localhost:8080/health
-kill %1
-cd ../..
-
-# Populate with sample data
-bash scripts/database-manager.sh populate
-
-# Check status
-bash scripts/database-manager.sh status
+# Quick restart without rebuild
+./scripts/build-deploy.sh --skip-build
 ```
 
-### Using Custom Paths
+#### 2. Production Deployment
+
 ```bash
-# Use custom database file
-export DB_FILE="./custom-database.db"
-export SAMPLE_DATA_FILE="./custom-data.json"
+# Build and push to production registry
+docker login my.company.com
+./scripts/build-deploy.sh --push-registry my.company.com/taskflow --tag v1.0.0
 
-bash scripts/database-manager.sh populate
+# Run in background for server deployment
+./scripts/build-deploy.sh --build-run --detached
 ```
 
-## Troubleshooting
+### Registry Push Workflow
 
-### "SQLite3 is not installed"
-Install SQLite3 using your system's package manager or download from the official website.
+1. **Login to registry:**
 
-### "jq is not installed" (Bash script only)
-Install jq using your system's package manager: `sudo apt install jq` or `brew install jq`.
+   ```bash
+   docker login my.company.com
+   ```
 
-### "Database file not found" (Informational)
+2. **Build and push with default tag (latest):**
+
+   ```bash
+   ./scripts/build-deploy.sh --push-registry my.company.com/taskflow
+   ```
+
+3. **Build and push with custom tag:**
+
+   ```bash
+   ./scripts/build-deploy.sh --push-registry my.company.com/taskflow --tag v1.2.3
+   ```
+
+**Note:** The script automatically appends `/taskmanagement-api:TAG` and `/taskmanagement-frontend:TAG` to the registry path.
+
+---
+
+## 🎯 Script 2: k8s-deploy.sh
+
+### Purpose
+
+Complete Kubernetes deployment automation with support for multiple environments, scaling, monitoring, and rollback capabilities.
+
+### Usage
+
+```bash
+./scripts/k8s-deploy.sh [OPTIONS] ACTION
+```
+
+### Actions
+
+| Action | Description | Example |
+|--------|-------------|---------|
+| `deploy` | Deploy application to Kubernetes | `./scripts/k8s-deploy.sh deploy` |
+| `undeploy` | Remove application from Kubernetes | `./scripts/k8s-deploy.sh undeploy` |
+| `status` | Show deployment status | `./scripts/k8s-deploy.sh status` |
+| `logs` | Show application logs | `./scripts/k8s-deploy.sh logs` |
+| `scale` | Scale application replicas | `./scripts/k8s-deploy.sh --replicas 3 scale` |
+| `rollback` | Rollback to previous deployment | `./scripts/k8s-deploy.sh rollback` |
+| `restart` | Restart deployments | `./scripts/k8s-deploy.sh restart` |
+
+### Parameters
+
+| Parameter | Description | Default | Example |
+|-----------|-------------|---------|---------|
+| `--namespace NAME` | Kubernetes namespace | `taskmanagement` | `--namespace production` |
+| `--image-tag TAG` | Docker image tag | `latest` | `--image-tag v1.0.0` |
+| `--registry PATH` | Registry path for images | - | `--registry my.company.com/taskflow` |
+| `--replicas NUM` | Number of replicas for scaling | - | `--replicas 5` |
+| `--dry-run` | Show what would be deployed | - | `--dry-run` |
+| `--help` | Show help message | - | `--help` |
+
+### Use Cases
+
+#### 1. Development Deployment
+
+```bash
+# Deploy with default settings
+./scripts/k8s-deploy.sh deploy
+
+# Deploy with custom namespace and tag
+./scripts/k8s-deploy.sh --namespace dev --image-tag v1.0.0 deploy
+
+# Dry run to preview deployment
+./scripts/k8s-deploy.sh --dry-run deploy
+```
+
+#### 2. Production Management
+
+```bash
+# Deploy from registry
+./scripts/k8s-deploy.sh --registry my.company.com/taskflow --image-tag v1.2.3 deploy
+
+# Scale for high availability
+./scripts/k8s-deploy.sh --replicas 5 scale
+
+# Monitor deployment
+./scripts/k8s-deploy.sh status
+./scripts/k8s-deploy.sh logs
+```
+
+---
+
+## 📊 Script 3: database-manager.sh
+
+### Purpose
+
+Database management for local development and Docker Compose environments. Uses API endpoints for all operations.
+
+### Usage
+
+```bash
+./scripts/database-manager.sh [OPTIONS] COMMAND
+```
+
+### Commands
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `start` | Start the .NET API application | `./scripts/database-manager.sh start` |
+| `status` | Show database and API status | `./scripts/database-manager.sh status` |
+| `populate` | Populate database with sample data | `./scripts/database-manager.sh populate` |
+| `clear` | Clear all data from database | `./scripts/database-manager.sh clear` |
+| `remove` | Remove database file | `./scripts/database-manager.sh remove` |
+
+### Parameters
+
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `--force` | Skip confirmation prompts | `./scripts/database-manager.sh --force clear` |
+| `--help` | Show help message | `./scripts/database-manager.sh --help` |
+
+### Features
+
+- **Auto-Start Capability**: Can automatically start the .NET application if not running
+- **API-Based Operations**: All operations go through REST API endpoints
+- **Data Integrity**: Respects application business rules and validation
+- **No External Tools**: No need to install SQLite3 or other database tools
+
+---
+
+## 🎯 Script 4: k8s-database-manager.sh
+
+### Purpose
+
+Database management for applications running in Kubernetes clusters. Provides seamless data operations through port forwarding and service discovery.
+
+### Usage
+
+```bash
+./scripts/k8s-database-manager.sh [OPTIONS] COMMAND
+```
+
+### Commands
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `status` | Show deployment and data status | `./scripts/k8s-database-manager.sh status` |
+| `populate` | Populate database with sample data | `./scripts/k8s-database-manager.sh populate` |
+| `clear` | Clear all data from database | `./scripts/k8s-database-manager.sh clear` |
+
+### Parameters
+
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `--namespace NAME` | Kubernetes namespace | `./scripts/k8s-database-manager.sh --namespace production status` |
+| `--service NAME` | API service name | `./scripts/k8s-database-manager.sh --service api-service populate` |
+| `--port PORT` | Local port for port forwarding | `./scripts/k8s-database-manager.sh --port 9090 status` |
+| `--force` | Skip confirmation prompts | `./scripts/k8s-database-manager.sh --force clear` |
+| `--help` | Show help message | `./scripts/k8s-database-manager.sh --help` |
+
+### Features
+
+- **Port Forwarding**: Automatic setup and cleanup of kubectl port-forward
+- **Service Discovery**: Automatic detection of API services and pods
+- **Multi-Environment**: Support for different namespaces and services
+- **Data Validation**: JSON validation and API connectivity checks
+
+---
+
+## ✅ Script 5: k8s-validate.sh
+
+### Purpose
+
+Pre-deployment validation of all Kubernetes configurations to ensure deployment readiness.
+
+### Usage
+
+```bash
+./scripts/k8s-validate.sh
+```
+
+### Validation Categories
+
+- **Kubernetes Manifests**: Validates all required YAML files exist
+- **Docker Configurations**: Checks Dockerfile and docker-compose.yml
+- **Port Configurations**: Ensures consistent port mappings
+- **Service Communication**: Validates inter-service connectivity setup
+- **Environment Variables**: Checks all required variables are present
+- **Security Configurations**: Validates security contexts and permissions
+- **Resource Management**: Checks resource limits and requests
+- **Health Checks**: Validates liveness and readiness probes
+
+---
+
+## 🔄 Complete Workflow Examples
+
+### Development Workflow
+
+```bash
+# 1. Start local development
+./scripts/build-deploy.sh --build-run
+
+# 2. Populate with sample data
+./scripts/database-manager.sh populate
+
+# 3. Check status
+./scripts/database-manager.sh status
+```
+
+### Production Deployment Workflow
+
+```bash
+# 1. Build and push images
+docker login my.company.com
+./scripts/build-deploy.sh --push-registry my.company.com/taskflow --tag v1.0.0
+
+# 2. Validate Kubernetes configuration
+./scripts/k8s-validate.sh
+
+# 3. Deploy to Kubernetes
+./scripts/k8s-deploy.sh --namespace production --registry my.company.com/taskflow --image-tag v1.0.0 deploy
+
+# 4. Populate database in K8s
+./scripts/k8s-database-manager.sh --namespace production populate
+
+# 5. Verify deployment
+./scripts/k8s-deploy.sh --namespace production status
+```
+
+---
+
+## 🛠️ Environment Variables
+
+### Common Variables
+
+| Variable | Description | Default | Example |
+|----------|-------------|---------|---------|
+| `NAMESPACE` | Kubernetes namespace | `taskmanagement` | `export NAMESPACE=production` |
+| `REGISTRY_PATH` | Container registry path | - | `export REGISTRY_PATH=my.company.com/taskflow` |
+| `IMAGE_TAG` | Docker image tag | `latest` | `export IMAGE_TAG=v1.0.0` |
+
+### Database Manager Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `API_URL` | API base URL | `http://localhost:5000` |
+| `DB_FILE` | Database file path | `backend/TaskManagement.API/taskmanagement.db` |
+| `SAMPLE_DATA_FILE` | Sample data JSON file | `scripts/sample-data.json` |
+
+---
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+#### "Database file does not exist" (Informational)
+
 This message is normal and indicates that the SQLite database file is not found on disk. This can happen when:
+
 - The database is created in-memory or temporarily
 - The database file is created in a different location than expected
 - The application uses Entity Framework's `EnsureCreated()` method
 
 This does not affect functionality - the database operations work correctly through the API.
 
-### "Sample data file not found"
-Ensure the `scripts/sample-data.json` file exists or set the `SAMPLE_DATA_FILE` environment variable to the correct path.
+#### "API not responding"
 
-## Notes
+1. Check if the .NET application is running: `./scripts/database-manager.sh status`
+2. Start the API manually: `./scripts/database-manager.sh start`
+3. Verify the API URL is correct
+4. Check firewall and network connectivity
 
-- The scripts automatically handle data type conversions between JSON and SQLite
-- User and category indices in the JSON file are converted to 1-based IDs for database insertion
-- Date formats are automatically converted from ISO 8601 to SQLite datetime format
-- Single quotes in data are properly escaped to prevent SQL injection
-- The scripts include comprehensive error handling and colored output for better user experience
+#### "kubectl command not found"
+
+Install kubectl for your platform:
+
+- **Ubuntu/WSL**: `sudo apt install kubectl`
+- **macOS**: `brew install kubectl`
+- **Windows**: Download from Kubernetes official site
+
+#### "Permission denied" errors
+
+Make scripts executable:
+
+```bash
+chmod +x scripts/*.sh
+```
+
+---
+
+## 📚 Additional Resources
+
+- **Main README**: `../README.md` - Application overview and setup
+- **Kubernetes Deployment**: `../K8S-DEPLOYMENT-CHECKLIST.md` - Complete K8s deployment guide
+- **Sample Data**: `sample-data.json` - JSON structure for sample data
+- **Docker Compose**: `../docker-compose.yml` - Local development environment
+
+---
+
+**For additional support or questions, refer to the main README.md or create an issue in the repository.**

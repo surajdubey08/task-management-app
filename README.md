@@ -5,6 +5,7 @@ A comprehensive full-stack task management application built with React frontend
 ## 🏗️ Architecture Overview
 
 ### Technology Stack
+
 - **Frontend**: React 18 with TypeScript support, Tailwind CSS, React Query
 - **Backend**: .NET 8 Web API with Entity Framework Core
 - **Database**: SQLite (development) / SQL Server (production)
@@ -13,6 +14,7 @@ A comprehensive full-stack task management application built with React frontend
 - **UI Components**: Lucide React icons, React Hook Form, React Hot Toast
 
 ### Application Features
+
 - **Task Management**: Create, read, update, delete tasks with status tracking
 - **User Management**: Complete user lifecycle with profile management
 - **Category Management**: Organize tasks with color-coded categories
@@ -59,6 +61,7 @@ taskflow/
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - **Docker & Docker Compose**: For containerized development
 - **Node.js 18+**: For frontend development
 - **.NET 8 SDK**: For backend development
@@ -67,24 +70,47 @@ taskflow/
 ### Local Development with Docker
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd taskflow
    ```
 
 2. **Start the application**
+
    ```bash
    ./scripts/build-deploy.sh --build-run
    ```
 
 3. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000
-   - API Documentation: http://localhost:5000/swagger
+   - Frontend: <http://localhost:3000>
+   - Backend API: <http://localhost:5000>
+   - API Documentation: <http://localhost:5000/swagger
+
+### Build and Registry Push
+
+Build and push images to your container registry:
+
+```bash
+# Build and push with default tag (latest)
+./scripts/build-deploy.sh --push-registry my.company.com/taskflow
+
+# Build and push with custom tag
+./scripts/build-deploy.sh --push-registry my.company.com/taskflow --tag v1.0.0
+
+# Build and push in detached mode
+./scripts/build-deploy.sh --push-registry my.company.com/taskflow --tag v1.2.3 --detached
+```
+
+**Note**: Ensure you're logged into the registry first:
+```bash
+docker login my.company.com
+```>
 
 ### Manual Development Setup
 
 1. **Backend Setup**
+
    ```bash
    cd backend/TaskManagement.API
    dotnet restore
@@ -92,6 +118,7 @@ taskflow/
    ```
 
 2. **Frontend Setup**
+
    ```bash
    cd frontend
    npm install
@@ -101,6 +128,7 @@ taskflow/
 ## 🔧 API Endpoints
 
 ### Tasks
+
 - `GET /api/tasks` - Get all tasks (with optional filters)
 - `GET /api/tasks/{id}` - Get task by ID
 - `POST /api/tasks` - Create new task
@@ -108,6 +136,7 @@ taskflow/
 - `DELETE /api/tasks/{id}` - Delete task
 
 ### Users
+
 - `GET /api/users` - Get all users
 - `GET /api/users/{id}` - Get user by ID
 - `POST /api/users` - Create new user
@@ -115,6 +144,7 @@ taskflow/
 - `DELETE /api/users/{id}` - Delete user
 
 ### Categories
+
 - `GET /api/categories` - Get all categories
 - `GET /api/categories/{id}` - Get category by ID
 - `POST /api/categories` - Create new category
@@ -122,15 +152,18 @@ taskflow/
 - `DELETE /api/categories/{id}` - Delete category
 
 ### Task Comments
+
 - `GET /api/tasks/{taskId}/comments` - Get task comments
 - `POST /api/tasks/{taskId}/comments` - Add comment to task
 
 ### Task Activities
+
 - `GET /api/tasks/{taskId}/activities` - Get task activity history
 
 ## 🐳 Docker Configuration
 
 ### Development Environment
+
 ```yaml
 # docker-compose.yml
 version: '3.8'
@@ -156,6 +189,7 @@ services:
 ```
 
 ### Production Considerations
+
 - **Security**: Non-root user execution in containers
 - **Health Checks**: Comprehensive health monitoring
 - **Resource Limits**: CPU and memory constraints
@@ -165,6 +199,7 @@ services:
 ## ☸️ Kubernetes Deployment
 
 ### Namespace and Configuration
+
 ```yaml
 # k8s/namespace.yaml
 apiVersion: v1
@@ -174,6 +209,7 @@ metadata:
 ```
 
 ### Application Deployment
+
 ```bash
 # Deploy to Kubernetes
 ./scripts/k8s-deploy.sh --deploy
@@ -186,6 +222,7 @@ kubectl get services -n taskmanagement
 ## 🗄️ Database Management
 
 ### Schema Overview
+
 - **Tasks**: Core task entities with status, priority, and relationships
 - **Users**: User profiles with authentication support
 - **Categories**: Task categorization with color coding
@@ -193,6 +230,7 @@ kubectl get services -n taskmanagement
 - **TaskActivities**: Audit trail for task changes
 
 ### Database Operations
+
 ```bash
 # Reset database
 ./scripts/database-manager.sh --reset
@@ -207,17 +245,20 @@ kubectl get services -n taskmanagement
 ## 🔒 Security Features
 
 ### Authentication & Authorization
+
 - JWT token-based authentication (ready for implementation)
 - Role-based access control structure
 - Secure API endpoints with proper validation
 
 ### Container Security
+
 - Non-root user execution
 - Minimal base images
 - Security context enforcement
 - Network policies support
 
 ### Data Protection
+
 - Input validation and sanitization
 - SQL injection prevention with Entity Framework
 - XSS protection with proper encoding
@@ -226,12 +267,14 @@ kubectl get services -n taskmanagement
 ## 📊 Monitoring & Observability
 
 ### Logging
+
 - Structured logging with Serilog
 - Request/response logging
 - Error tracking and alerting
 - Performance metrics
 
 ### Health Checks
+
 - Application health endpoints
 - Database connectivity checks
 - External service dependency monitoring
@@ -240,12 +283,14 @@ kubectl get services -n taskmanagement
 ## 🛠️ Development Workflow
 
 ### Code Quality
+
 - ESLint and Prettier for frontend
 - EditorConfig for consistent formatting
 - Git hooks for pre-commit validation
 - Automated testing pipeline ready
 
 ### CI/CD Pipeline
+
 - Docker image building and pushing
 - Kubernetes deployment automation
 - Database migration handling
@@ -254,12 +299,15 @@ kubectl get services -n taskmanagement
 ## 📚 Additional Resources
 
 ### Scripts Documentation
-See [SCRIPTS.md](./SCRIPTS.md) for detailed information about automation scripts and their usage.
+
+See [scripts/README.md](./scripts/README.md) for detailed information about automation scripts and their usage.
 
 ### API Documentation
+
 Interactive API documentation available at `/swagger` endpoint when running the backend.
 
 ### Contributing
+
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
@@ -272,6 +320,7 @@ Interactive API documentation available at `/swagger` endpoint when running the 
 **✅ DEPLOYMENT READY** - All configurations validated and optimized for K8s.
 
 #### Quick Deploy
+
 ```bash
 # Validate configuration
 ./scripts/k8s-validate.sh
@@ -287,6 +336,7 @@ Interactive API documentation available at `/swagger` endpoint when running the 
 ```
 
 #### Access Points
+
 - **LoadBalancer**: `kubectl get svc taskmanagement-frontend-service -n taskmanagement`
 - **NodePort**: `http://<node-ip>:30080`
 - **Ingress**: `http://taskmanagement.local`
@@ -295,16 +345,19 @@ See [K8S-DEPLOYMENT-CHECKLIST.md](K8S-DEPLOYMENT-CHECKLIST.md) for complete depl
 
 ### Environment Variables
 
-**Backend (.NET API)**
+#### Backend (.NET API)
+
 - `ASPNETCORE_ENVIRONMENT` - Environment (Development/Production)
 - `ASPNETCORE_URLS` - Server URLs (http://+:8080)
 - `ConnectionStrings__DefaultConnection` - Database connection string
 
-**Frontend (React)**
+#### Frontend (React)
+
 - `REACT_APP_API_URL` - Backend API base URL
 - `REACT_APP_ENVIRONMENT` - Application environment
 
 ### Scaling Considerations
+
 - Horizontal pod autoscaling for Kubernetes
 - Database connection pooling
 - Redis caching for session management
