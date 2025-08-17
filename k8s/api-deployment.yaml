@@ -7,7 +7,7 @@ metadata:
     app: taskmanagement-api
     tier: backend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: taskmanagement-api
@@ -79,10 +79,14 @@ spec:
         volumeMounts:
         - name: logs-volume
           mountPath: /app/logs
+        - name: data-volume
+          mountPath: /app/data
       imagePullSecrets:
       - name: IMAGE_PULL_SECRET_PLACEHOLDER
       volumes:
       - name: logs-volume
+        emptyDir: {}
+      - name: data-volume
         emptyDir: {}
 ---
 apiVersion: v1

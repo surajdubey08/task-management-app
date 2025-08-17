@@ -241,7 +241,6 @@ deploy_application() {
         "api-service.yaml"
         "frontend-deployment.yaml"
         "frontend-service.yaml"
-        "ingress.yaml"
     )
     
     for manifest in "${manifests[@]}"; do
