@@ -237,6 +237,7 @@ deploy_application() {
         "configmap.yaml"
         "nginx-configmap.yaml"
         "secret.yaml"
+        "postgres-deployment.yaml"
         "api-deployment.yaml"
         "api-service.yaml"
         "frontend-deployment.yaml"

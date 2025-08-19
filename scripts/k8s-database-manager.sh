@@ -7,11 +7,13 @@ set -e
 
 # Configuration
 NAMESPACE="${NAMESPACE:-taskmanagement}"
-SERVICE_NAME="${SERVICE_NAME:-taskmanagement-api-service}"
+FRONTEND_SERVICE_NAME="${FRONTEND_SERVICE_NAME:-taskmanagement-frontend-service}"
+API_SERVICE_NAME="${API_SERVICE_NAME:-taskmanagement-api-service}"
 SERVICE_PORT="${SERVICE_PORT:-80}"
 SAMPLE_DATA_FILE="${SAMPLE_DATA_FILE:-scripts/sample-data.json}"
 KUBECTL_TIMEOUT="${KUBECTL_TIMEOUT:-60s}"
 KUBECONFIG_FILE="${KUBECONFIG_FILE:-}"
+API_URL=""
 
 # Colors for output
 RED='\033[0;31m'
@@ -94,6 +96,34 @@ check_prerequisites() {
     setup_kubeconfig
 }
 
+# Get external IP from LoadBalancer service
+get_external_ip() {
+    log_info "Getting external IP from LoadBalancer service..."
+
+    # Wait for LoadBalancer to get external IP (up to 5 minutes)
+    local max_attempts=30
+    local attempt=1
+
+    while [ $attempt -le $max_attempts ]; do
+        local external_ip=$(kubectl get service "$FRONTEND_SERVICE_NAME" -n "$NAMESPACE" -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
+
+        if [ -n "$external_ip" ] && [ "$external_ip" != "null" ]; then
+            API_URL="http://$external_ip"
+            log_success "External IP found: $external_ip"
+            log_success "API URL: $API_URL"
+            return 0
+        fi
+
+        log_info "Waiting for LoadBalancer external IP... (attempt $attempt/$max_attempts)"
+        sleep 10
+        ((attempt++))
+    done
+
+    log_error "Failed to get external IP from LoadBalancer service after 5 minutes"
+    log_info "Please check if the LoadBalancer service is properly configured"
+    exit 1
+}
+
 # Check if namespace exists
 check_namespace() {
     if ! kubectl get namespace "$NAMESPACE" &> /dev/null; then
@@ -105,8 +135,8 @@ check_namespace() {
 
 # Check if API service is running
 check_api_service() {
-    if ! kubectl get service "$SERVICE_NAME" -n "$NAMESPACE" &> /dev/null; then
-        log_error "API service '$SERVICE_NAME' not found in namespace '$NAMESPACE'"
+    if ! kubectl get service "$API_SERVICE_NAME" -n "$NAMESPACE" &> /dev/null; then
+        log_error "API service '$API_SERVICE_NAME' not found in namespace '$NAMESPACE'"
         log_info "Please deploy the application first: ./scripts/k8s-deploy.sh deploy"
         exit 1
     fi
@@ -123,61 +153,36 @@ check_api_service() {
     log_success "API service is running with $ready_pods ready pod(s)"
 }
 
-# Setup port forwarding to API service
-setup_port_forward() {
-    local local_port="${LOCAL_PORT:-8080}"
-    
-    # Kill any existing port-forward on this port
-    pkill -f "kubectl.*port-forward.*$local_port" 2>/dev/null || true
-    
-    log_info "Setting up port forwarding to API service..."
-    kubectl port-forward "service/$SERVICE_NAME" "$local_port:$SERVICE_PORT" -n "$NAMESPACE" &
-    local pf_pid=$!
-    
-    # Wait for port forward to be ready
-    sleep 5
+# Setup API connection using external IP
+setup_api_connection() {
+    get_external_ip
 
-    # Test if port forward is working by checking health endpoint
+    # Test API connectivity
     local max_attempts=10
     local attempt=1
 
+    log_info "Testing API connectivity..."
     while [ $attempt -le $max_attempts ]; do
-        if curl -s -f "http://localhost:$local_port/health" > /dev/null 2>&1; then
-            log_success "Port forwarding established on localhost:$local_port"
-            echo "$pf_pid" > /tmp/k8s-db-manager-pf.pid
+        if curl -s -f "$API_URL/health" > /dev/null 2>&1; then
+            log_success "API is accessible at $API_URL"
             return 0
         fi
 
-        log_info "Waiting for port forwarding (attempt $attempt/$max_attempts)..."
-        sleep 2
+        log_info "Waiting for API to be ready (attempt $attempt/$max_attempts)..."
+        sleep 5
         attempt=$((attempt + 1))
     done
 
-    log_error "Failed to establish port forwarding after $max_attempts attempts"
-    kill $pf_pid 2>/dev/null || true
+    log_error "Failed to connect to API after $max_attempts attempts"
+    log_error "API URL: $API_URL"
     exit 1
 }
 
-# Cleanup port forwarding
-cleanup_port_forward() {
-    if [ -f /tmp/k8s-db-manager-pf.pid ]; then
-        local pf_pid=$(cat /tmp/k8s-db-manager-pf.pid)
-        kill $pf_pid 2>/dev/null || true
-        rm -f /tmp/k8s-db-manager-pf.pid
-        log_info "Port forwarding cleaned up"
-    fi
-}
-
-# Trap to cleanup on exit
-trap cleanup_port_forward EXIT
-
-# Make API call through port forward
+# Make API call using external IP
 api_call() {
     local method="$1"
     local endpoint="$2"
     local data="$3"
-    local local_port="${LOCAL_PORT:-8080}"
-    local api_url="http://localhost:$local_port"
 
     local response
     local http_code
@@ -186,9 +191,9 @@ api_call() {
         response=$(curl -s -w "\n%{http_code}" -X "$method" \
                        -H "Content-Type: application/json" \
                        -d "$data" \
-                       "$api_url$endpoint")
+                       "$API_URL$endpoint")
     else
-        response=$(curl -s -w "\n%{http_code}" -X "$method" "$api_url$endpoint")
+        response=$(curl -s -w "\n%{http_code}" -X "$method" "$API_URL$endpoint")
     fi
 
     http_code=$(echo "$response" | tail -n1)
@@ -429,7 +434,8 @@ show_status() {
     print_header "KUBERNETES TASKFLOW STATUS"
 
     log_info "Namespace: $NAMESPACE"
-    log_info "Service: $SERVICE_NAME"
+    log_info "Frontend Service: $FRONTEND_SERVICE_NAME"
+    log_info "API Service: $API_SERVICE_NAME"
     log_info "Sample Data File: $SAMPLE_DATA_FILE"
     echo
 
@@ -442,16 +448,16 @@ show_status() {
     fi
 
     # Check API service
-    if kubectl get service "$SERVICE_NAME" -n "$NAMESPACE" &> /dev/null; then
-        log_success "✓ API service '$SERVICE_NAME' exists"
+    if kubectl get service "$API_SERVICE_NAME" -n "$NAMESPACE" &> /dev/null; then
+        log_success "✓ API service '$API_SERVICE_NAME' exists"
 
         # Get service details
-        local service_type=$(kubectl get service "$SERVICE_NAME" -n "$NAMESPACE" -o jsonpath='{.spec.type}')
-        local service_port=$(kubectl get service "$SERVICE_NAME" -n "$NAMESPACE" -o jsonpath='{.spec.ports[0].port}')
+        local service_type=$(kubectl get service "$API_SERVICE_NAME" -n "$NAMESPACE" -o jsonpath='{.spec.type}')
+        local service_port=$(kubectl get service "$API_SERVICE_NAME" -n "$NAMESPACE" -o jsonpath='{.spec.ports[0].port}')
         echo "     Service Type: $service_type"
         echo "     Service Port: $service_port"
     else
-        log_error "✗ API service '$SERVICE_NAME' not found"
+        log_error "✗ API service '$API_SERVICE_NAME' not found"
         return 1
     fi
 
@@ -466,20 +472,18 @@ show_status() {
         return 1
     fi
 
-    # Try to get data counts via port forward
-    setup_port_forward
+    # Try to get data counts via external IP
+    setup_api_connection
 
     log_info "Fetching data counts..."
-    local users_count=$(get_all_records "/api/users" 2>/dev/null | jq '. | length' 2>/dev/null || echo "0")
-    local categories_count=$(get_all_records "/api/categories" 2>/dev/null | jq '. | length' 2>/dev/null || echo "0")
-    local tasks_count=$(get_all_records "/api/tasks" 2>/dev/null | jq '. | length' 2>/dev/null || echo "0")
+    local users_count=$(get_all_records "/users" 2>/dev/null | jq '. | length' 2>/dev/null || echo "0")
+    local categories_count=$(get_all_records "/categories" 2>/dev/null | jq '. | length' 2>/dev/null || echo "0")
+    local tasks_count=$(get_all_records "/tasks" 2>/dev/null | jq '. | length' 2>/dev/null || echo "0")
 
     echo "  📊 Data Summary:"
     printf "     Users: %-8s\n" "$users_count"
     printf "     Categories: %-8s\n" "$categories_count"
     printf "     Tasks: %-8s\n" "$tasks_count"
-
-    cleanup_port_forward
 
     echo
     log_success "✅ Application is running and accessible"
@@ -497,17 +501,15 @@ show_usage() {
     echo ""
     echo "Options:"
     echo "  --namespace NAME    - Kubernetes namespace (default: taskmanagement)"
-    echo "  --service NAME      - API service name (default: taskmanagement-api-service)"
-    echo "  --port PORT         - Local port for port forwarding (default: 8080)"
     echo "  --kubeconfig FILE   - Path to kubeconfig file"
     echo "  --force             - Skip confirmation prompts"
     echo "  --help              - Show this help message"
     echo ""
     echo "Environment Variables:"
     echo "  NAMESPACE           - Kubernetes namespace (default: taskmanagement)"
-    echo "  SERVICE_NAME        - API service name (default: taskmanagement-api-service)"
+    echo "  FRONTEND_SERVICE_NAME - Frontend LoadBalancer service name (default: taskmanagement-frontend-service)"
+    echo "  API_SERVICE_NAME    - API service name (default: taskmanagement-api-service)"
     echo "  SERVICE_PORT        - Service port (default: 80)"
-    echo "  LOCAL_PORT          - Local port for port forwarding (default: 8080)"
     echo "  SAMPLE_DATA_FILE    - Sample data JSON file (default: scripts/sample-data.json)"
     echo ""
     echo "Examples:"
@@ -589,7 +591,7 @@ case $COMMAND in
                 exit 0
             fi
         fi
-        setup_port_forward
+        setup_api_connection
         populate_data
         ;;
     clear)
@@ -603,7 +605,7 @@ case $COMMAND in
                 exit 0
             fi
         fi
-        setup_port_forward
+        setup_api_connection
         clear_data
         ;;
     reset-populate)
@@ -617,7 +619,7 @@ case $COMMAND in
                 exit 0
             fi
         fi
-        setup_port_forward
+        setup_api_connection
         clear_data
         populate_data
         ;;

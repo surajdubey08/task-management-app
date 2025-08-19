@@ -44,7 +44,17 @@ builder.Services.AddResponseCaching();
 // Database with performance optimizations
 builder.Services.AddDbContext<TaskManagementContext>(options =>
 {
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    var databaseProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SQLite";
+
+    if (databaseProvider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase))
+    {
+        options.UseNpgsql(connectionString);
+    }
+    else
+    {
+        options.UseSqlite(connectionString);
+    }
 
     // Performance optimizations
     if (builder.Environment.IsProduction())

@@ -7,7 +7,7 @@ metadata:
     app: taskmanagement-api
     tier: backend
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: taskmanagement-api
@@ -53,6 +53,11 @@ spec:
             secretKeyRef:
               name: taskmanagement-secrets
               key: CONNECTION_STRING
+        - name: DatabaseProvider
+          valueFrom:
+            configMapKeyRef:
+              name: taskmanagement-config
+              key: DatabaseProvider
         resources:
           requests:
             memory: "256Mi"
@@ -79,14 +84,10 @@ spec:
         volumeMounts:
         - name: logs-volume
           mountPath: /app/logs
-        - name: data-volume
-          mountPath: /app/data
       imagePullSecrets:
       - name: IMAGE_PULL_SECRET_PLACEHOLDER
       volumes:
       - name: logs-volume
-        emptyDir: {}
-      - name: data-volume
         emptyDir: {}
 ---
 apiVersion: v1
