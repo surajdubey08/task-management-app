@@ -15,7 +15,9 @@ import {
   BarChart3,
   TrendingUp,
   Maximize2,
-  Grid3X3
+  Grid3X3,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTasks, useUsers, useCategories, useTaskAnalytics } from '../hooks/useQueryHooks';
@@ -23,6 +25,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import DashboardWidgets from '../components/widgets/DashboardWidgets';
 import TaskChart from '../components/charts/TaskChart';
+import { PerformanceAnalytics } from '../services/analytics';
 
 const Dashboard = () => {
   const [dashboardLayout, setDashboardLayout] = useState([
@@ -32,12 +35,39 @@ const Dashboard = () => {
     { i: 'actions', x: 0, y: 6, w: 12, h: 2 }
   ]);
   const [showWidgetMode, setShowWidgetMode] = useState(false);
+  const [selectedChartType, setSelectedChartType] = useState('status');
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
 
   // Data queries using TanStack Query hooks
-  const { data: tasks, isLoading: tasksLoading, error: tasksError } = useTasks();
-  const { data: users, isLoading: usersLoading } = useUsers();
-  const { data: categories, isLoading: categoriesLoading } = useCategories();
-  const { data: analytics } = useTaskAnalytics();
+  const { data: tasks, isLoading: tasksLoading, error: tasksError, refetch: refetchTasks } = useTasks();
+  const { data: users, isLoading: usersLoading, refetch: refetchUsers } = useUsers();
+  const { data: categories, isLoading: categoriesLoading, refetch: refetchCategories } = useCategories();
+  const { data: analytics, refetch: refetchAnalytics } = useTaskAnalytics();
+
+  // Auto-refresh functionality
+  useEffect(() => {
+    if (!autoRefresh) return;
+    
+    const interval = setInterval(() => {
+      refetchTasks();
+      refetchUsers();
+      refetchCategories();
+      refetchAnalytics?.();
+      setLastRefresh(new Date());
+    }, 30000); // Refresh every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, [autoRefresh, refetchTasks, refetchUsers, refetchCategories, refetchAnalytics]);
+
+  // Manual refresh function
+  const handleManualRefresh = () => {
+    refetchTasks();
+    refetchUsers();
+    refetchCategories();
+    refetchAnalytics?.();
+    setLastRefresh(new Date());
+  };
 
   // Load dashboard layout from localStorage
   useEffect(() => {
@@ -73,6 +103,19 @@ const Dashboard = () => {
     completed: tasks?.filter(t => t.status === 2).length || 0,
   };
 
+  // Performance analytics
+  const performanceMetrics = React.useMemo(() => {
+    if (!tasks || tasks.length === 0) return {};
+    
+    return {
+      completionRate: PerformanceAnalytics.calculateTaskCompletionRate(tasks),
+      productivityScore: PerformanceAnalytics.calculateProductivityScore(tasks),
+      teamMetrics: PerformanceAnalytics.getTeamProductivityMetrics(tasks, users || []),
+      weeklyTrends: PerformanceAnalytics.getWeeklyTrends(tasks),
+      insights: PerformanceAnalytics.generateInsights(tasks)
+    };
+  }, [tasks, users]);
+
   const stats = [
     {
       name: 'Total Tasks',
@@ -97,7 +140,7 @@ const Dashboard = () => {
     {
       name: 'Completed',
       value: taskStats.completed,
-      change: '+23%',
+      change: `${performanceMetrics.completionRate || 0}%`,
       changeType: 'increase',
       icon: CheckSquare,
       color: 'text-green-600',
@@ -105,11 +148,11 @@ const Dashboard = () => {
       iconBg: 'bg-green-100 dark:bg-green-900/40',
     },
     {
-      name: 'Team Members',
-      value: users?.length || 0,
-      change: '+2',
-      changeType: 'increase',
-      icon: Users,
+      name: 'Productivity',
+      value: `${performanceMetrics.productivityScore || 0}%`,
+      change: 'Score',
+      changeType: performanceMetrics.productivityScore > 70 ? 'increase' : 'decrease',
+      icon: TrendingUp,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50 dark:bg-purple-900/20',
       iconBg: 'bg-purple-100 dark:bg-purple-900/40',
@@ -146,6 +189,40 @@ const Dashboard = () => {
             {showWidgetMode ? <Grid3X3 size={18} /> : <Maximize2 size={18} />}
             <span>{showWidgetMode ? 'Widget Mode' : 'Layout Mode'}</span>
           </motion.button>
+          
+          {/* Auto-refresh toggle */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+              autoRefresh 
+                ? 'bg-green-500 text-white shadow-lg' 
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+            }`}
+          >
+            <div className={`w-2 h-2 rounded-full ${
+              autoRefresh ? 'bg-white animate-pulse' : 'bg-gray-400'
+            }`} />
+            <span>Auto-refresh</span>
+          </motion.button>
+          
+          {/* Manual refresh button */}
+          <motion.button
+            whileHover={{ scale: 1.05, rotate: 90 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleManualRefresh}
+            className="p-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-xl font-medium transition-all duration-200 hover:shadow-md"
+            title="Refresh data"
+          >
+            <RefreshCw size={18} />
+          </motion.button>
+          
+          {/* Last refresh indicator */}
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Last updated: {lastRefresh.toLocaleTimeString()}
+          </div>
+          
           <Link
             to="/tasks/new"
             className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
@@ -247,96 +324,111 @@ const Dashboard = () => {
                     Task Analytics
                   </h2>
                 </div>
-                <Link
-                  to="/analytics"
-                  className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm transition-colors duration-200"
-                >
-                  View Details
-                  <ArrowUpRight size={16} />
-                </Link>
-              </div>
-              <TaskChart 
-                data={tasks || []} 
-                analytics={analytics}
-                className="h-64"
-              />
-            </motion.div>
-
-            {/* Recent Activity */}
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
-            >
-              <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-lg">
-                      <Activity className="h-5 w-5 text-green-600" />
-                    </div>
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                      Recent Activity
-                    </h2>
-                  </div>
-                  <Link
-                    to="/tasks"
-                    className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 font-medium text-sm transition-colors duration-200"
+                <div className="flex items-center gap-2">
+                  <select 
+                    className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    onChange={(e) => setSelectedChartType(e.target.value)}
+                    value={selectedChartType}
                   >
-                    View all
+                    <option value="status">Task Status</option>
+                    <option value="priority">Priority Distribution</option>
+                    <option value="category">Category Breakdown</option>
+                    <option value="trend">Completion Trend</option>
+                    <option value="team">Team Productivity</option>
+                  </select>
+                  <Link
+                    to="/analytics"
+                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm transition-colors duration-200"
+                  >
+                    View Details
                     <ArrowUpRight size={16} />
                   </Link>
                 </div>
               </div>
+              <TaskChart 
+                data={tasks || []} 
+                analytics={analytics}
+                chartType={selectedChartType}
+                className="h-80"
+              />
+            </motion.div>
 
-              <div className="p-6">
-                {recentTasks.length > 0 ? (
-                  <div className="space-y-4">
-                    {recentTasks.slice(0, 5).map((task, index) => (
-                      <motion.div
-                        key={task.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 + index * 0.1 }}
-                        className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer group"
-                        onClick={() => window.location.href = `/tasks/${task.id}`}
-                      >
-                        <div className={`w-3 h-3 rounded-full ${
-                          task.status === 2 ? 'bg-green-500' :
-                          task.status === 1 ? 'bg-yellow-500' : 'bg-gray-400'
-                        }`} />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                            {task.title}
-                          </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                            {task.description}
-                          </p>
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {new Date(task.createdAt).toLocaleDateString()}
-                        </div>
-                      </motion.div>
-                    ))}
+            {/* Quick Analytics Summary */}
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-lg">
+                  <TrendingUp className="h-5 w-5 text-green-600" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Quick Insights
+                </h2>
+              </div>
+              
+              <div className="space-y-4">
+                {/* Completion Rate */}
+                <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                      Completion Rate
+                    </span>
+                    <span className="text-lg font-bold text-green-600">
+                      {taskStats.total > 0 ? Math.round((taskStats.completed / taskStats.total) * 100) : 0}%
+                    </span>
                   </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="bg-gray-100 dark:bg-gray-700 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                      <CheckSquare className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                  <div className="w-full bg-green-200 dark:bg-green-800 rounded-full h-2">
+                    <div 
+                      className="bg-green-500 h-2 rounded-full transition-all duration-500" 
+                      style={{ width: `${taskStats.total > 0 ? (taskStats.completed / taskStats.total) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+                
+                {/* Productivity Score */}
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                      Productivity Score
+                    </span>
+                    <span className="text-lg font-bold text-blue-600">
+                      {Math.min(100, Math.round((taskStats.completed * 20) + (taskStats.inProgress * 10)))}%
+                    </span>
+                  </div>
+                  <div className="text-xs text-blue-600 dark:text-blue-400">
+                    Based on completed and active tasks
+                  </div>
+                </div>
+                
+                {/* Pending Tasks Alert */}
+                {taskStats.pending > 5 && (
+                  <div className="p-4 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/20 dark:to-yellow-900/20 rounded-xl border border-orange-200 dark:border-orange-700">
+                    <div className="flex items-center gap-2 mb-1">
+                      <AlertCircle className="h-4 w-4 text-orange-600" />
+                      <span className="text-sm font-medium text-orange-800 dark:text-orange-200">
+                        High Pending Tasks
+                      </span>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No tasks yet</h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                      Create your first task to get started
-                    </p>
-                    <Link
-                      to="/tasks/new"
-                      className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
-                    >
-                      <Plus size={16} />
-                      Create Task
-                    </Link>
+                    <div className="text-xs text-orange-600 dark:text-orange-400">
+                      You have {taskStats.pending} pending tasks
+                    </div>
                   </div>
                 )}
+                
+                {/* Team Size */}
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-200 dark:border-purple-700">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-purple-800 dark:text-purple-200">
+                      Active Team Members
+                    </span>
+                    <span className="text-lg font-bold text-purple-600">
+                      {users?.length || 0}
+                    </span>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </div>

@@ -23,6 +23,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTasks, useUsers, useCategories } from '../hooks/useQueryHooks';
 import EnhancedKanbanBoard from '../components/kanban/EnhancedKanbanBoard';
 import KanbanFilters from '../components/kanban/KanbanFilters';
+import BulkOperations from '../components/kanban/BulkOperations';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 
@@ -57,38 +58,70 @@ const KanbanView = () => {
   const filteredTasks = useMemo(() => {
     let filtered = [...tasks];
     
-    // Search filter
+    // Search filter - enhanced to search in multiple fields
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(task => 
         task.title.toLowerCase().includes(searchLower) ||
-        task.description?.toLowerCase().includes(searchLower)
+        task.description?.toLowerCase().includes(searchLower) ||
+        task.userName?.toLowerCase().includes(searchLower) ||
+        task.categoryName?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Advanced text filters
+    if (filters.advanced?.title) {
+      const titleSearch = filters.advanced.title.toLowerCase();
+      filtered = filtered.filter(task => 
+        task.title.toLowerCase().includes(titleSearch)
+      );
+    }
+    
+    if (filters.advanced?.description) {
+      const descSearch = filters.advanced.description.toLowerCase();
+      filtered = filtered.filter(task => 
+        task.description?.toLowerCase().includes(descSearch)
       );
     }
     
     // User filter
-    if (filters.assignedUsers.length > 0) {
-      filtered = filtered.filter(task => 
-        filters.assignedUsers.includes(task.assignedUserId)
-      );
+    if (filters.assignedUsers && filters.assignedUsers.length > 0) {
+      filtered = filtered.filter(task => {
+        if (filters.assignedUsers.includes('unassigned')) {
+          return !task.assignedUserId || filters.assignedUsers.includes(task.assignedUserId);
+        }
+        return filters.assignedUsers.includes(task.assignedUserId);
+      });
     }
     
     // Category filter
-    if (filters.categories.length > 0) {
-      filtered = filtered.filter(task => 
-        filters.categories.includes(task.categoryId)
-      );
+    if (filters.categories && filters.categories.length > 0) {
+      filtered = filtered.filter(task => {
+        if (filters.categories.includes('uncategorized')) {
+          return !task.categoryId || filters.categories.includes(task.categoryId);
+        }
+        return filters.categories.includes(task.categoryId);
+      });
     }
     
-    // Priority filter
-    if (filters.priority !== null) {
-      filtered = filtered.filter(task => task.priority === filters.priority);
+    // Priority filter - support multiple priorities
+    if (filters.priority !== null && filters.priority !== undefined) {
+      if (Array.isArray(filters.priorities) && filters.priorities.length > 0) {
+        filtered = filtered.filter(task => filters.priorities.includes(task.priority));
+      } else {
+        filtered = filtered.filter(task => task.priority === filters.priority);
+      }
     }
     
-    // Due date filter
+    // Status filter - support multiple statuses
+    if (filters.statuses && filters.statuses.length > 0) {
+      filtered = filtered.filter(task => filters.statuses.includes(task.status));
+    }
+    
+    // Due date filter with enhanced options
     if (filters.dueDate) {
       const today = new Date();
-      const filterDate = new Date(today);
+      today.setHours(0, 0, 0, 0);
       
       switch (filters.dueDate) {
         case 'overdue':
@@ -97,24 +130,82 @@ const KanbanView = () => {
           );
           break;
         case 'today':
-          filterDate.setHours(23, 59, 59, 999);
-          filtered = filtered.filter(task => 
-            task.dueDate && new Date(task.dueDate) <= filterDate
-          );
+          filtered = filtered.filter(task => {
+            if (!task.dueDate) return false;
+            const dueDate = new Date(task.dueDate);
+            dueDate.setHours(0, 0, 0, 0);
+            return dueDate.getTime() === today.getTime();
+          });
           break;
         case 'week':
-          filterDate.setDate(today.getDate() + 7);
+          const weekEnd = new Date(today);
+          weekEnd.setDate(today.getDate() + 7);
           filtered = filtered.filter(task => 
-            task.dueDate && new Date(task.dueDate) <= filterDate
+            task.dueDate && new Date(task.dueDate) >= today && new Date(task.dueDate) <= weekEnd
           );
           break;
         case 'month':
-          filterDate.setMonth(today.getMonth() + 1);
+          const monthEnd = new Date(today);
+          monthEnd.setMonth(today.getMonth() + 1);
           filtered = filtered.filter(task => 
-            task.dueDate && new Date(task.dueDate) <= filterDate
+            task.dueDate && new Date(task.dueDate) >= today && new Date(task.dueDate) <= monthEnd
           );
           break;
+        case 'no-date':
+          filtered = filtered.filter(task => !task.dueDate);
+          break;
       }
+    }
+    
+    // Date range filters
+    if (filters.dueDateRange?.start || filters.dueDateRange?.end) {
+      filtered = filtered.filter(task => {
+        if (!task.dueDate) return false;
+        const dueDate = new Date(task.dueDate);
+        
+        if (filters.dueDateRange.start) {
+          const startDate = new Date(filters.dueDateRange.start);
+          if (dueDate < startDate) return false;
+        }
+        
+        if (filters.dueDateRange.end) {
+          const endDate = new Date(filters.dueDateRange.end);
+          if (dueDate > endDate) return false;
+        }
+        
+        return true;
+      });
+    }
+    
+    if (filters.createdDateRange?.start || filters.createdDateRange?.end) {
+      filtered = filtered.filter(task => {
+        const createdDate = new Date(task.createdAt);
+        
+        if (filters.createdDateRange.start) {
+          const startDate = new Date(filters.createdDateRange.start);
+          if (createdDate < startDate) return false;
+        }
+        
+        if (filters.createdDateRange.end) {
+          const endDate = new Date(filters.createdDateRange.end);
+          if (createdDate > endDate) return false;
+        }
+        
+        return true;
+      });
+    }
+    
+    // Boolean filters
+    if (filters.isOverdue === true) {
+      filtered = filtered.filter(task => 
+        task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 2
+      );
+    }
+    
+    if (filters.hasAttachments === true) {
+      filtered = filtered.filter(task => 
+        task.attachments && task.attachments.length > 0
+      );
     }
     
     // Show completed filter
@@ -152,12 +243,14 @@ const KanbanView = () => {
   const handleBulkOperation = (operation, data) => {
     if (selectedTasks.size === 0) return;
     
-    // Implement bulk operations
+    // The actual implementation is now handled by BulkOperations component
     console.log('Bulk operation:', operation, 'for tasks:', Array.from(selectedTasks), 'data:', data);
-    
-    // Clear selection after operation
-    setSelectedTasks(new Set());
-    setBulkOperationMode(false);
+  };
+
+  // Handle bulk operation completion
+  const handleBulkOperationComplete = () => {
+    // Refresh data after bulk operations
+    refetchTasks();
   };
 
   // Auto-refresh functionality
@@ -172,27 +265,27 @@ const KanbanView = () => {
   }, [viewSettings.autoRefresh, refetchTasks]);
 
   if (tasksLoading) {
-    return <LoadingSpinner message=\"Loading Kanban board...\" />;
+    return <LoadingSpinner message="Loading Kanban board...\" />;
   }
 
   if (tasksError) {
-    return <ErrorMessage message=\"Failed to load tasks\" onRetry={refetchTasks} />;
+    return <ErrorMessage message="Failed to load tasks\" onRetry={refetchTasks} />;
   }
 
   return (
-    <div className=\"h-full flex flex-col\">
+    <div className="h-full flex flex-col">
       {/* Enhanced Header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className=\"flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6\"
+        className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6"
       >
-        <div className=\"flex items-center gap-4\">
+        <div className="flex items-center gap-4">
           <div>
-            <h1 className=\"text-3xl font-bold text-gray-900 dark:text-white mb-2\">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Kanban Board 📋
             </h1>
-            <div className=\"flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400\">
+            <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
               <span>{stats.total} tasks</span>
               <span>•</span>
               <span>{stats.pending} pending</span>
@@ -203,7 +296,7 @@ const KanbanView = () => {
               {stats.overdue > 0 && (
                 <>
                   <span>•</span>
-                  <span className=\"text-red-600 dark:text-red-400 font-medium\">
+                  <span className="text-red-600 dark:text-red-400 font-medium">
                     {stats.overdue} overdue
                   </span>
                 </>
@@ -212,44 +305,25 @@ const KanbanView = () => {
           </div>
         </div>
         
-        <div className=\"flex items-center gap-3\">
-          {/* Bulk Operations */}
+        <div className="flex items-center gap-3">
+          {/* Bulk Operations Component */}
           <AnimatePresence>
             {bulkOperationMode && selectedTasks.size > 0 && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className=\"flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-2\"
-              >
-                <CheckSquare className=\"h-4 w-4 text-blue-600\" />
-                <span className=\"text-sm font-medium text-blue-900 dark:text-blue-100\">
-                  {selectedTasks.size} selected
-                </span>
-                <button
-                  onClick={() => handleBulkOperation('move', { status: 1 })}
-                  className=\"text-xs bg-blue-100 dark:bg-blue-800 text-blue-900 dark:text-blue-100 px-2 py-1 rounded\"
-                >
-                  Move to Progress
-                </button>
-                <button
-                  onClick={() => handleBulkOperation('move', { status: 2 })}
-                  className=\"text-xs bg-green-100 dark:bg-green-800 text-green-900 dark:text-green-100 px-2 py-1 rounded\"
-                >
-                  Mark Complete
-                </button>
-                <button
-                  onClick={() => setSelectedTasks(new Set())}
-                  className=\"text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300\"
-                >
-                  Clear
-                </button>
-              </motion.div>
+              <BulkOperations
+                selectedTasks={selectedTasks}
+                onClearSelection={() => {
+                  setSelectedTasks(new Set());
+                  setBulkOperationMode(false);
+                }}
+                users={users}
+                categories={categories}
+                onOperationComplete={handleBulkOperationComplete}
+              />
             )}
           </AnimatePresence>
           
           {/* View Controls */}
-          <div className=\"flex items-center gap-2\">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => handleViewSettingChange('showFilters', !viewSettings.showFilters)}
               className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -258,7 +332,7 @@ const KanbanView = () => {
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
-              <Filter className=\"h-4 w-4\" />
+              <Filter className="h-4 w-4" />
               Filters
             </button>
             
@@ -270,7 +344,7 @@ const KanbanView = () => {
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
-              <CheckSquare className=\"h-4 w-4\" />
+              <CheckSquare className="h-4 w-4" />
               Bulk Select
             </button>
             
@@ -288,15 +362,15 @@ const KanbanView = () => {
           </div>
           
           {/* View Toggle */}
-          <div className=\"flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1\">
+          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
             <Link
-              to=\"/tasks\"
-              className=\"flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors\"
+              to="/tasks"
+              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               <List size={16} />
               List View
             </Link>
-            <div className=\"flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm\">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm">
               <Grid size={16} />
               Kanban
             </div>
@@ -304,8 +378,8 @@ const KanbanView = () => {
           
           {/* Add Task Button */}
           <Link
-            to=\"/tasks/new\"
-            className=\"inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl\"
+            to="/tasks/new"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
           >
             <Plus size={18} />
             <span>New Task</span>
@@ -320,7 +394,7 @@ const KanbanView = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className=\"mb-6\"
+            className="mb-6"
           >
             <KanbanFilters
               filters={filters}
@@ -335,7 +409,7 @@ const KanbanView = () => {
       </AnimatePresence>
 
       {/* Enhanced Kanban Board */}
-      <div className=\"flex-1 min-h-0 overflow-hidden\">
+      <div className="flex-1 min-h-0 overflow-hidden">
         <EnhancedKanbanBoard
           tasks={filteredTasks}
           users={users}

@@ -266,10 +266,10 @@ const EnhancedKanbanBoard = ({
                           <div
                             ref={provided.innerRef}
                             {...provided.droppableProps}
-                            className={`p-4 min-h-32 transition-colors ${
+                            className={`p-4 min-h-32 transition-all duration-300 ease-in-out ${
                               snapshot.isDraggingOver
-                                ? 'bg-blue-50 dark:bg-blue-900/30'
-                                : ''
+                                ? 'bg-blue-50 dark:bg-blue-900/30 ring-2 ring-blue-300 ring-opacity-50 scale-105'
+                                : 'scale-100'
                             }`}
                           >
                             <AnimatePresence>
@@ -285,14 +285,36 @@ const EnhancedKanbanBoard = ({
                                       {...provided.draggableProps}
                                       {...provided.dragHandleProps}
                                       layout
-                                      initial={{ opacity: 0, y: 20 }}
-                                      animate={{ opacity: 1, y: 0 }}
-                                      exit={{ opacity: 0, y: -20 }}
-                                      className={`mb-3 transform transition-transform ${
+                                      initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                                      animate={{ 
+                                        opacity: 1, 
+                                        y: 0, 
+                                        scale: snapshot.isDragging ? 1.05 : 1,
+                                        rotate: snapshot.isDragging ? 2 : 0,
+                                        zIndex: snapshot.isDragging ? 1000 : 1
+                                      }}
+                                      exit={{ 
+                                        opacity: 0, 
+                                        y: -20, 
+                                        scale: 0.9,
+                                        transition: { duration: 0.2 }
+                                      }}
+                                      whileHover={!snapshot.isDragging ? { 
+                                        y: -4, 
+                                        scale: 1.02,
+                                        transition: { duration: 0.2 }
+                                      } : {}}
+                                      className={`mb-3 transform transition-all duration-200 ${
                                         snapshot.isDragging
-                                          ? 'rotate-2 scale-105 shadow-2xl'
-                                          : ''
+                                          ? 'shadow-2xl ring-2 ring-blue-400 ring-opacity-75 cursor-grabbing'
+                                          : 'cursor-grab hover:shadow-lg'
                                       }`}
+                                      style={{
+                                        ...provided.draggableProps.style,
+                                        transform: snapshot.isDragging 
+                                          ? `${provided.draggableProps.style?.transform} rotate(2deg) scale(1.05)`
+                                          : provided.draggableProps.style?.transform
+                                      }}
                                     >
                                       <EnhancedTaskCard
                                         task={task}

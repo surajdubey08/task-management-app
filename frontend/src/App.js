@@ -6,11 +6,16 @@ import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
 import CommandPalette from './components/CommandPalette';
 import LoadingSpinner from './components/LoadingSpinner';
 import { SkipLink, LiveRegion } from './hooks/useAccessibility';
 import { useScreenReader, useServiceWorker } from './hooks/useAccessibility';
 import { usePWA } from './hooks/usePWA';
+// Authentication pages
+import Login from './pages/Login';
+import Register from './pages/Register';
+// Protected pages
 import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
 import KanbanView from './pages/KanbanView';
@@ -97,30 +102,44 @@ const AppRouter = () => {
           </button>
         </div>
       )}
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/tasks" element={<Tasks />} />
-          <Route path="/kanban" element={<KanbanView />} />
-          <Route path="/kanban/enhanced" element={<EnhancedKanbanView />} />
-          <Route path="/tasks/new" element={<CreateTask />} />
-          <Route path="/tasks/:id" element={<TaskDetail />} />
-          <Route path="/tasks/:id/edit" element={<EditTask />} />
-          <Route path="/users" element={<Users />} />
-          <Route path="/users/new" element={<CreateUser />} />
-          <Route path="/users/:id/edit" element={<EditUser />} />
-          <Route path="/categories" element={<Categories />} />
-          <Route path="/categories/new" element={<CreateCategory />} />
-          <Route path="/categories/:id/edit" element={<EditCategory />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Layout>
       
-      {/* Command Palette */}
-      <CommandPalette 
-        isOpen={commandPaletteOpen} 
-        onClose={() => setCommandPaletteOpen(false)} 
-      />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        
+        {/* Protected Routes */}
+        <Route path="/*" element={
+          <ProtectedRoute>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/tasks" element={<Tasks />} />
+                <Route path="/kanban" element={<KanbanView />} />
+                <Route path="/kanban/enhanced" element={<EnhancedKanbanView />} />
+                <Route path="/tasks/new" element={<CreateTask />} />
+                <Route path="/tasks/:id" element={<TaskDetail />} />
+                <Route path="/tasks/:id/edit" element={<EditTask />} />
+                <Route path="/users" element={<Users />} />
+                <Route path="/users/new" element={<CreateUser />} />
+                <Route path="/users/:id/edit" element={<EditUser />} />
+                <Route path="/categories" element={<Categories />} />
+                <Route path="/categories/new" element={<CreateCategory />} />
+                <Route path="/categories/:id/edit" element={<EditCategory />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Layout>
+          </ProtectedRoute>
+        } />
+      </Routes>
+      
+      {/* Command Palette - Only show when authenticated */}
+      <ProtectedRoute fallback={null}>
+        <CommandPalette 
+          isOpen={commandPaletteOpen} 
+          onClose={() => setCommandPaletteOpen(false)} 
+        />
+      </ProtectedRoute>
       
       {/* Toast Notifications */}
       <Toaster

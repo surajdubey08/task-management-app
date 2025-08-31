@@ -251,3 +251,82 @@ export const useChartData = (tasks = []) => {
     categoryData,
   };
 };
+
+// Main TaskChart component with multiple chart options
+const TaskChart = ({ data = [], analytics, className = '', chartType = 'status' }) => {
+  const { statusData, priorityData, categoryData } = useChartData(data);
+  
+  // Generate sample trend data if analytics is not provided
+  const trendData = React.useMemo(() => {
+    if (analytics?.trendData) {
+      return analytics.trendData;
+    }
+    
+    // Generate sample trend data for the last 7 days
+    const days = 7;
+    const today = new Date();
+    const trendData = [];
+    
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      
+      // Sample data based on actual tasks
+      const dayTasks = data.filter(task => {
+        const taskDate = new Date(task.createdAt || task.dueDate);
+        return taskDate.toDateString() === date.toDateString();
+      });
+      
+      trendData.push({
+        date: date.toISOString(),
+        created: Math.max(1, Math.floor(Math.random() * 5) + dayTasks.length),
+        completed: Math.max(0, Math.floor(Math.random() * 3) + dayTasks.filter(t => t.status === 2).length),
+      });
+    }
+    
+    return trendData;
+  }, [data, analytics]);
+  
+  // Generate team productivity data
+  const teamData = React.useMemo(() => {
+    if (analytics?.teamData) {
+      return analytics.teamData;
+    }
+    
+    // Group tasks by assigned user
+    const userMap = new Map();
+    data.forEach(task => {
+      const userName = task.assignedUserName || task.assignedUser?.name || 'Unassigned';
+      const existing = userMap.get(userName) || {
+        name: userName,
+        completedTasks: 0,
+        inProgressTasks: 0,
+        totalTasks: 0,
+      };
+      
+      existing.totalTasks += 1;
+      if (task.status === 2) existing.completedTasks += 1;
+      if (task.status === 1) existing.inProgressTasks += 1;
+      
+      userMap.set(userName, existing);
+    });
+    
+    return Array.from(userMap.values()).slice(0, 6); // Limit to top 6 users
+  }, [data, analytics]);
+
+  switch (chartType) {
+    case 'priority':
+      return <TaskPriorityChart data={priorityData} className={className} />;
+    case 'category':
+      return <CategoryDistributionChart data={categoryData} className={className} />;
+    case 'trend':
+      return <TaskCompletionTrendChart data={trendData} className={className} />;
+    case 'team':
+      return <TeamProductivityChart data={teamData} className={className} />;
+    case 'status':
+    default:
+      return <TaskStatusChart data={statusData} className={className} />;
+  }
+};
+
+export default TaskChart;

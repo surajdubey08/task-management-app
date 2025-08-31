@@ -14,6 +14,7 @@ import {
   EyeOff
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import AdvancedSearch from './AdvancedSearch';
 
 const KanbanFilters = ({ 
   filters, 
@@ -80,34 +81,42 @@ const KanbanFilters = ({
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className=\"bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm\"
+      className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm"
     >
-      <div className=\"grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6\">
+      {/* Advanced Search Component */}
+      <AdvancedSearch
+        filters={filters}
+        onFilterChange={onFilterChange}
+        users={users}
+        categories={categories}
+      />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {/* Search and Quick Filters */}
-        <div className=\"space-y-4\">
-          <h3 className=\"font-semibold text-gray-900 dark:text-white flex items-center gap-2\">
-            <Search className=\"h-4 w-4\" />
+        <div className="space-y-4">
+          <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Search className="h-4 w-4" />
             Search & Quick Filters
           </h3>
           
           {/* Search Input */}
-          <div className=\"relative\">
-            <Search className=\"absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400\" />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
-              type=\"text\"
-              placeholder=\"Search tasks...\"
+              type="text"
+              placeholder="Search tasks..."
               value={filters.search}
               onChange={(e) => onFilterChange({ search: e.target.value })}
-              className=\"w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500\"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           
           {/* Due Date Quick Filters */}
-          <div className=\"space-y-2\">
-            <label className=\"block text-sm font-medium text-gray-700 dark:text-gray-300\">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Due Date
             </label>
-            <div className=\"flex flex-wrap gap-2\">
+            <div className="flex flex-wrap gap-2">
               {dueDateOptions.map((option) => {
                 const Icon = option.icon;
                 const isSelected = filters.dueDate === option.value;
@@ -132,8 +141,8 @@ const KanbanFilters = ({
           </div>
           
           {/* Show Completed Toggle */}
-          <div className=\"flex items-center justify-between\">
-            <label className=\"text-sm font-medium text-gray-700 dark:text-gray-300\">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Show Completed Tasks
             </label>
             <button
@@ -144,26 +153,26 @@ const KanbanFilters = ({
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
               }`}
             >
-              {filters.showCompleted ? <Eye className=\"h-3 w-3\" /> : <EyeOff className=\"h-3 w-3\" />}
+              {filters.showCompleted ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
               {filters.showCompleted ? 'Visible' : 'Hidden'}
             </button>
           </div>
         </div>
 
         {/* Assignment and Category Filters */}
-        <div className=\"space-y-4\">
-          <h3 className=\"font-semibold text-gray-900 dark:text-white flex items-center gap-2\">
-            <Filter className=\"h-4 w-4\" />
+        <div className="space-y-4">
+          <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Filter className="h-4 w-4" />
             Assignment & Categories
           </h3>
           
           {/* Assigned Users */}
-          <div className=\"space-y-2\">
-            <label className=\"block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2\">
-              <Users className=\"h-4 w-4\" />
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <Users className="h-4 w-4" />
               Assigned Users
             </label>
-            <div className=\"space-y-1 max-h-32 overflow-y-auto\">
+            <div className="space-y-1 max-h-32 overflow-y-auto">
               {users.map((user) => {
                 const isSelected = filters.assignedUsers.includes(user.id);
                 return (
@@ -179,8 +188,8 @@ const KanbanFilters = ({
                     <div className={`w-2 h-2 rounded-full ${
                       isSelected ? 'bg-blue-600' : 'bg-gray-400'
                     }`} />
-                    <span className=\"truncate\">{user.name}</span>
-                    <span className=\"text-xs text-gray-500 dark:text-gray-400 ml-auto\">
+                    <span className="truncate">{user.name}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
                       {user.email}
                     </span>
                   </button>
@@ -190,12 +199,12 @@ const KanbanFilters = ({
           </div>
           
           {/* Categories */}
-          <div className=\"space-y-2\">
-            <label className=\"block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2\">
-              <Tag className=\"h-4 w-4\" />
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <Tag className="h-4 w-4" />
               Categories
             </label>
-            <div className=\"flex flex-wrap gap-2\">
+            <div className="flex flex-wrap gap-2">
               {categories.map((category) => {
                 const isSelected = filters.categories.includes(category.id);
                 return (
@@ -209,7 +218,7 @@ const KanbanFilters = ({
                     }`}
                   >
                     <div 
-                      className=\"w-2 h-2 rounded-full\" 
+                      className="w-2 h-2 rounded-full" 
                       style={{ backgroundColor: category.color }}
                     />
                     {category.name}
@@ -220,11 +229,11 @@ const KanbanFilters = ({
           </div>
           
           {/* Priority Filter */}
-          <div className=\"space-y-2\">
-            <label className=\"block text-sm font-medium text-gray-700 dark:text-gray-300\">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Priority
             </label>
-            <div className=\"flex gap-2\">
+            <div className="flex gap-2">
               {priorityOptions.map((option) => {
                 const isSelected = filters.priority === option.value;
                 return (
@@ -248,22 +257,22 @@ const KanbanFilters = ({
         </div>
 
         {/* View Settings */}
-        <div className=\"space-y-4\">
-          <h3 className=\"font-semibold text-gray-900 dark:text-white flex items-center gap-2\">
-            <Columns className=\"h-4 w-4\" />
+        <div className="space-y-4">
+          <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Columns className="h-4 w-4" />
             View Settings
           </h3>
           
           {/* Swimlanes */}
-          <div className=\"space-y-2\">
-            <label className=\"block text-sm font-medium text-gray-700 dark:text-gray-300\">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Swimlanes
             </label>
-            <div className=\"relative\">
+            <div className="relative">
               <select
                 value={viewSettings.swimlanes}
                 onChange={(e) => onViewSettingChange('swimlanes', e.target.value)}
-                className=\"w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none\"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
               >
                 {swimlaneOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -271,19 +280,19 @@ const KanbanFilters = ({
                   </option>
                 ))}
               </select>
-              <ChevronDown className=\"absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none\" />
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
             </div>
           </div>
           
           {/* View Options */}
-          <div className=\"space-y-3\">
-            <label className=\"block text-sm font-medium text-gray-700 dark:text-gray-300\">
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Display Options
             </label>
             
-            <div className=\"space-y-2\">
-              <label className=\"flex items-center justify-between\">
-                <span className=\"text-sm text-gray-700 dark:text-gray-300\">Compact Mode</span>
+            <div className="space-y-2">
+              <label className="flex items-center justify-between">
+                <span className="text-sm text-gray-700 dark:text-gray-300">Compact Mode</span>
                 <button
                   onClick={() => onViewSettingChange('compactMode', !viewSettings.compactMode)}
                   className={`w-10 h-5 rounded-full transition-colors ${
@@ -296,8 +305,8 @@ const KanbanFilters = ({
                 </button>
               </label>
               
-              <label className=\"flex items-center justify-between\">
-                <span className=\"text-sm text-gray-700 dark:text-gray-300\">Show Task Counts</span>
+              <label className="flex items-center justify-between">
+                <span className="text-sm text-gray-700 dark:text-gray-300">Show Task Counts</span>
                 <button
                   onClick={() => onViewSettingChange('showTaskCounts', !viewSettings.showTaskCounts)}
                   className={`w-10 h-5 rounded-full transition-colors ${
@@ -315,8 +324,8 @@ const KanbanFilters = ({
       </div>
       
       {/* Filter Actions */}
-      <div className=\"flex items-center justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-700\">
-        <div className=\"text-sm text-gray-500 dark:text-gray-400\">
+      <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="text-sm text-gray-500 dark:text-gray-400">
           {hasActiveFilters && (
             <span>Active filters applied</span>
           )}
@@ -325,9 +334,9 @@ const KanbanFilters = ({
         {hasActiveFilters && (
           <button
             onClick={clearAllFilters}
-            className=\"flex items-center gap-2 px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors\"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
           >
-            <X className=\"h-4 w-4\" />
+            <X className="h-4 w-4" />
             Clear All Filters
           </button>
         )}

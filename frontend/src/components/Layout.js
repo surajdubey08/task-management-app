@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Home,
   CheckSquare,
@@ -9,14 +9,22 @@ import {
   X,
   Bell,
   Settings,
-  Grid
+  Grid,
+  LogOut,
+  User,
+  ChevronDown
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ThemeToggle from './ThemeToggle';
+import { useAuth } from '../contexts/AuthContext';
 
 const Layout = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const { user, logout, isAuthenticated } = useAuth();
 
   // Close sidebar when route changes
   useEffect(() => {
@@ -36,6 +44,18 @@ const Layout = ({ children }) => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuOpen && !event.target.closest('.user-menu-container')) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [userMenuOpen]);
 
   // Prevent body scroll when mobile sidebar is open
   useEffect(() => {
@@ -201,12 +221,99 @@ const Layout = ({ children }) => {
                 <Settings size={20} />
               </button>
 
-              <div
-                className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
-                title="User Profile (Coming Soon)"
-              >
-                <span className="text-white text-sm font-medium">U</span>
-              </div>
+              {/* User Menu */}
+              {isAuthenticated && (
+                <div className="relative user-menu-container">
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="flex items-center gap-2 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-medium">
+                        {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                      </span>
+                    </div>
+                    <ChevronDown size={16} className={`transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* User Dropdown Menu */}
+                  <AnimatePresence>
+                    {userMenuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50"
+                      >
+                        {/* User Info */}
+                        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                              <span className="text-white font-medium">
+                                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                              </span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                {user?.name || 'User'}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                {user?.email || 'user@example.com'}
+                              </p>
+                              {user?.role && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 mt-1">
+                                  {user.role}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Menu Items */}
+                        <div className="py-1">
+                          <button
+                            onClick={() => {
+                              setUserMenuOpen(false);
+                              navigate('/profile');
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <User size={16} />
+                            Profile Settings
+                          </button>
+                          <button
+                            onClick={() => {
+                              setUserMenuOpen(false);
+                              navigate('/settings');
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <Settings size={16} />
+                            Account Settings
+                          </button>
+                          <hr className="my-1 border-gray-200 dark:border-gray-700" />
+                          <button
+                            onClick={async () => {
+                              setUserMenuOpen(false);
+                              try {
+                                await logout();
+                                navigate('/login');
+                              } catch (error) {
+                                console.error('Logout failed:', error);
+                              }
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          >
+                            <LogOut size={16} />
+                            Sign Out
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
             </div>
           </div>
         </header>

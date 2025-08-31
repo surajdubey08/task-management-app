@@ -1,2 +1,228 @@
-import React, { useState } from 'react';\nimport { Link } from 'react-router-dom';\nimport { motion } from 'framer-motion';\nimport { \n  Calendar, \n  User, \n  Tag, \n  Clock, \n  AlertCircle, \n  MessageSquare,\n  Paperclip,\n  Eye,\n  Edit,\n  MoreHorizontal,\n  CheckSquare,\n  Square,\n  Zap,\n  Flag\n} from 'lucide-react';\nimport { formatDistanceToNow, isAfter, isBefore, addDays } from 'date-fns';\n\nconst EnhancedTaskCard = ({ \n  task, \n  users, \n  categories, \n  isSelected, \n  onSelection, \n  bulkOperationMode, \n  compactMode, \n  isDragging \n}) => {\n  const [showActions, setShowActions] = useState(false);\n  \n  // Get associated user and category\n  const assignedUser = users.find(u => u.id === task.assignedUserId);\n  const category = categories.find(c => c.id === task.categoryId);\n  \n  // Priority configuration\n  const priorityConfig = {\n    0: { label: 'Low', color: 'bg-green-100 text-green-800 border-green-200', icon: '🔹' },\n    1: { label: 'Medium', color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: '🔸' },\n    2: { label: 'High', color: 'bg-red-100 text-red-800 border-red-200', icon: '🔴' }\n  };\n  \n  const priority = priorityConfig[task.priority] || priorityConfig[0];\n  \n  // Due date status\n  const getDueDateStatus = () => {\n    if (!task.dueDate) return null;\n    \n    const dueDate = new Date(task.dueDate);\n    const now = new Date();\n    const tomorrow = addDays(now, 1);\n    \n    if (isBefore(dueDate, now) && task.status !== 2) {\n      return { type: 'overdue', color: 'text-red-600', bg: 'bg-red-50 border-red-200' };\n    } else if (isBefore(dueDate, tomorrow)) {\n      return { type: 'due-soon', color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200' };\n    } else {\n      return { type: 'normal', color: 'text-gray-600', bg: 'bg-gray-50 border-gray-200' };\n    }\n  };\n  \n  const dueDateStatus = getDueDateStatus();\n  \n  // Handle task selection\n  const handleSelection = (e) => {\n    e.preventDefault();\n    e.stopPropagation();\n    onSelection(task.id, !isSelected);\n  };\n  \n  // Handle quick actions\n  const handleQuickAction = (action, e) => {\n    e.preventDefault();\n    e.stopPropagation();\n    \n    switch (action) {\n      case 'view':\n        window.open(`/tasks/${task.id}`, '_blank');\n        break;\n      case 'edit':\n        window.open(`/tasks/${task.id}/edit`, '_blank');\n        break;\n      default:\n        console.log('Action:', action);\n    }\n  };\n  \n  if (compactMode) {\n    return (\n      <motion.div\n        layout\n        whileHover={{ scale: isDragging ? 1 : 1.02 }}\n        className={`group relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${\n          isSelected ? 'ring-2 ring-blue-500 border-blue-300' : ''\n        } ${isDragging ? 'shadow-2xl rotate-1' : ''}`}\n        onMouseEnter={() => setShowActions(true)}\n        onMouseLeave={() => setShowActions(false)}\n      >\n        {/* Compact Header */}\n        <div className=\"flex items-start justify-between gap-2\">\n          <div className=\"flex items-start gap-2 flex-1 min-w-0\">\n            {bulkOperationMode && (\n              <button\n                onClick={handleSelection}\n                className=\"mt-1 p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors\"\n              >\n                {isSelected ? (\n                  <CheckSquare className=\"h-4 w-4 text-blue-600\" />\n                ) : (\n                  <Square className=\"h-4 w-4 text-gray-400\" />\n                )}\n              </button>\n            )}\n            \n            <div className=\"flex-1 min-w-0\">\n              <h4 className=\"font-medium text-gray-900 dark:text-white text-sm line-clamp-2 leading-tight\">\n                {task.title}\n              </h4>\n              \n              <div className=\"flex items-center gap-2 mt-1\">\n                {/* Priority indicator */}\n                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium border ${priority.color}`}>\n                  {priority.icon}\n                </span>\n                \n                {/* Assignee */}\n                {assignedUser && (\n                  <div className=\"flex items-center gap-1 text-xs text-gray-500\">\n                    <User className=\"h-3 w-3\" />\n                    <span className=\"truncate max-w-16\">{assignedUser.name.split(' ')[0]}</span>\n                  </div>\n                )}\n                \n                {/* Due date */}\n                {task.dueDate && (\n                  <div className={`flex items-center gap-1 text-xs ${dueDateStatus?.color}`}>\n                    <Clock className=\"h-3 w-3\" />\n                    <span>{formatDistanceToNow(new Date(task.dueDate), { addSuffix: true })}</span>\n                  </div>\n                )}\n              </div>\n            </div>\n          </div>\n          \n          {/* Quick actions */}\n          {showActions && !bulkOperationMode && (\n            <motion.div\n              initial={{ opacity: 0, scale: 0.8 }}\n              animate={{ opacity: 1, scale: 1 }}\n              className=\"flex items-center gap-1\"\n            >\n              <button\n                onClick={(e) => handleQuickAction('view', e)}\n                className=\"p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors\"\n                title=\"View task\"\n              >\n                <Eye className=\"h-3 w-3 text-gray-500\" />\n              </button>\n              <button\n                onClick={(e) => handleQuickAction('edit', e)}\n                className=\"p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors\"\n                title=\"Edit task\"\n              >\n                <Edit className=\"h-3 w-3 text-gray-500\" />\n              </button>\n            </motion.div>\n          )}\n        </div>\n      </motion.div>\n    );\n  }\n  \n  return (\n    <motion.div\n      layout\n      whileHover={{ scale: isDragging ? 1 : 1.02 }}\n      className={`group relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer ${\n        isSelected ? 'ring-2 ring-blue-500 border-blue-300' : ''\n      } ${isDragging ? 'shadow-2xl rotate-2 scale-105' : ''}`}\n      onMouseEnter={() => setShowActions(true)}\n      onMouseLeave={() => setShowActions(false)}\n    >\n      {/* Card Header */}\n      <div className=\"flex items-start justify-between gap-3 mb-3\">\n        <div className=\"flex items-start gap-2 flex-1 min-w-0\">\n          {bulkOperationMode && (\n            <button\n              onClick={handleSelection}\n              className=\"mt-1 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors\"\n            >\n              {isSelected ? (\n                <CheckSquare className=\"h-4 w-4 text-blue-600\" />\n              ) : (\n                <Square className=\"h-4 w-4 text-gray-400\" />\n              )}\n            </button>\n          )}\n          \n          <div className=\"flex-1 min-w-0\">\n            <h4 className=\"font-semibold text-gray-900 dark:text-white text-sm line-clamp-2 leading-tight mb-1\">\n              {task.title}\n            </h4>\n            \n            {task.description && (\n              <p className=\"text-xs text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed\">\n                {task.description}\n              </p>\n            )}\n          </div>\n        </div>\n        \n        {/* Priority indicator */}\n        <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${priority.color} flex-shrink-0`}>\n          <span className=\"mr-1\">{priority.icon}</span>\n          {priority.label}\n        </div>\n      </div>\n      \n      {/* Task metadata */}\n      <div className=\"space-y-2\">\n        {/* Category */}\n        {category && (\n          <div className=\"flex items-center gap-2\">\n            <div \n              className=\"w-2 h-2 rounded-full flex-shrink-0\" \n              style={{ backgroundColor: category.color }}\n            />\n            <span className=\"text-xs text-gray-600 dark:text-gray-400 truncate\">\n              {category.name}\n            </span>\n          </div>\n        )}\n        \n        {/* Assignee */}\n        {assignedUser && (\n          <div className=\"flex items-center gap-2\">\n            <div className=\"w-6 h-6 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0\">\n              <User className=\"h-3 w-3 text-gray-600 dark:text-gray-300\" />\n            </div>\n            <div className=\"flex-1 min-w-0\">\n              <p className=\"text-xs font-medium text-gray-900 dark:text-white truncate\">\n                {assignedUser.name}\n              </p>\n              <p className=\"text-xs text-gray-500 dark:text-gray-400 truncate\">\n                {assignedUser.email}\n              </p>\n            </div>\n          </div>\n        )}\n        \n        {/* Due date */}\n        {task.dueDate && (\n          <div className={`flex items-center gap-2 p-2 rounded-lg border ${dueDateStatus?.bg} ${dueDateStatus?.color}`}>\n            <Clock className=\"h-3 w-3 flex-shrink-0\" />\n            <div className=\"flex-1 min-w-0\">\n              <p className=\"text-xs font-medium\">\n                {dueDateStatus?.type === 'overdue' ? 'Overdue' : \n                 dueDateStatus?.type === 'due-soon' ? 'Due Soon' : 'Due'}\n              </p>\n              <p className=\"text-xs opacity-75\">\n                {formatDistanceToNow(new Date(task.dueDate), { addSuffix: true })}\n              </p>\n            </div>\n            {dueDateStatus?.type === 'overdue' && (\n              <AlertCircle className=\"h-3 w-3 text-red-500 flex-shrink-0\" />\n            )}\n          </div>\n        )}\n      </div>\n      \n      {/* Task stats */}\n      <div className=\"flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-700\">\n        <div className=\"flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400\">\n          {/* Comments count */}\n          <div className=\"flex items-center gap-1\">\n            <MessageSquare className=\"h-3 w-3\" />\n            <span>{task.commentsCount || 0}</span>\n          </div>\n          \n          {/* Attachments count */}\n          <div className=\"flex items-center gap-1\">\n            <Paperclip className=\"h-3 w-3\" />\n            <span>{task.attachmentsCount || 0}</span>\n          </div>\n          \n          {/* Created date */}\n          <span>{formatDistanceToNow(new Date(task.createdAt))} ago</span>\n        </div>\n        \n        {/* Quick actions */}\n        {showActions && !bulkOperationMode && (\n          <motion.div\n            initial={{ opacity: 0, scale: 0.8 }}\n            animate={{ opacity: 1, scale: 1 }}\n            className=\"flex items-center gap-1\"\n          >\n            <Link\n              to={`/tasks/${task.id}`}\n              onClick={(e) => e.stopPropagation()}\n              className=\"p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors\"\n              title=\"View task\"\n            >\n              <Eye className=\"h-3 w-3 text-gray-500\" />\n            </Link>\n            <Link\n              to={`/tasks/${task.id}/edit`}\n              onClick={(e) => e.stopPropagation()}\n              className=\"p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors\"\n              title=\"Edit task\"\n            >\n              <Edit className=\"h-3 w-3 text-gray-500\" />\n            </Link>\n            <button\n              onClick={(e) => {\n                e.stopPropagation();\n                setShowActions(false);\n              }}\n              className=\"p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors\"\n              title=\"More options\"\n            >\n              <MoreHorizontal className=\"h-3 w-3 text-gray-500\" />\n            </button>\n          </motion.div>\n        )}\n      </div>\n      \n      {/* Drag indicator */}\n      {isDragging && (\n        <div className=\"absolute inset-0 bg-blue-500 bg-opacity-10 border-2 border-blue-500 border-dashed rounded-xl pointer-events-none\" />\n      )}\n    </motion.div>\n  );\n};\n\nexport default EnhancedTaskCard;"
-</invoke>
+import React from 'react';
+import { motion } from 'framer-motion';
+import { 
+  Calendar, 
+  User, 
+  Tag, 
+  AlertCircle, 
+  Clock, 
+  CheckSquare,
+  MoreHorizontal,
+  MessageSquare,
+  Paperclip
+} from 'lucide-react';
+
+const EnhancedTaskCard = ({ 
+  task, 
+  users, 
+  categories, 
+  isSelected, 
+  onSelection, 
+  bulkOperationMode,
+  compactMode = false,
+  isDragging = false 
+}) => {
+  const assignedUser = users?.find(user => user.id === task.assignedUserId);
+  const category = categories?.find(cat => cat.id === task.categoryId);
+  
+  // Calculate due date status
+  const getDueDateStatus = () => {
+    if (!task.dueDate) return null;
+    
+    const now = new Date();
+    const dueDate = new Date(task.dueDate);
+    const diffTime = dueDate - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) {
+      return { type: 'overdue', text: `${Math.abs(diffDays)} days overdue`, color: 'text-red-600 bg-red-50' };
+    } else if (diffDays === 0) {
+      return { type: 'today', text: 'Due today', color: 'text-orange-600 bg-orange-50' };
+    } else if (diffDays <= 3) {
+      return { type: 'urgent', text: `${diffDays} days left`, color: 'text-yellow-600 bg-yellow-50' };
+    }
+    return null;
+  };
+
+  const dueDateStatus = getDueDateStatus();
+  
+  // Get priority color
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 0: return 'bg-green-500'; // Low
+      case 1: return 'bg-yellow-500'; // Medium
+      case 2: return 'bg-orange-500'; // High
+      case 3: return 'bg-red-500'; // Critical
+      default: return 'bg-gray-400';
+    }
+  };
+
+  const getPriorityLabel = (priority) => {
+    switch (priority) {
+      case 0: return 'Low';
+      case 1: return 'Medium';
+      case 2: return 'High';
+      case 3: return 'Critical';
+      default: return 'None';
+    }
+  };
+
+  const handleSelection = (e) => {
+    e.stopPropagation();
+    onSelection(task.id, !isSelected);
+  };
+
+  return (
+    <motion.div
+      whileHover={{ y: -2, scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className={`relative bg-white dark:bg-gray-800 rounded-xl border shadow-sm transition-all duration-200 hover:shadow-md ${
+        isDragging 
+          ? 'shadow-2xl ring-2 ring-blue-400 ring-opacity-50' 
+          : 'border-gray-200 dark:border-gray-700'
+      } ${
+        isSelected 
+          ? 'ring-2 ring-blue-500 ring-opacity-50 bg-blue-50 dark:bg-blue-900/20' 
+          : ''
+      } ${
+        compactMode ? 'p-3' : 'p-4'
+      }`}
+    >
+      {/* Priority indicator */}
+      <div className={`absolute top-0 left-0 w-1 h-full ${getPriorityColor(task.priority)} rounded-l-xl`} />
+      
+      {/* Selection checkbox for bulk operations */}
+      {bulkOperationMode && (
+        <div className="absolute top-2 right-2 z-10">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={handleSelection}
+            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+          />
+        </div>
+      )}
+      
+      {/* Task header */}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1 min-w-0">
+          <h3 className={`font-semibold text-gray-900 dark:text-white ${
+            compactMode ? 'text-sm' : 'text-base'
+          } line-clamp-2`}>
+            {task.title}
+          </h3>
+          {!compactMode && task.description && (
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+              {task.description}
+            </p>
+          )}
+        </div>
+        
+        {!bulkOperationMode && (
+          <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
+            <MoreHorizontal className="h-4 w-4 text-gray-500" />
+          </button>
+        )}
+      </div>
+      
+      {/* Task metadata */}
+      <div className="space-y-2">
+        {/* Category */}
+        {category && (
+          <div className="flex items-center gap-2">
+            <Tag className="h-3 w-3 text-gray-400" />
+            <span 
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
+              style={{ 
+                backgroundColor: `${category.color}20`, 
+                color: category.color 
+              }}
+            >
+              <div 
+                className="w-2 h-2 rounded-full" 
+                style={{ backgroundColor: category.color }}
+              />
+              {category.name}
+            </span>
+          </div>
+        )}
+        
+        {/* Due date */}
+        {task.dueDate && (
+          <div className="flex items-center gap-2">
+            <Calendar className={`h-3 w-3 ${dueDateStatus ? dueDateStatus.color.split(' ')[0] : 'text-gray-400'}`} />
+            <span className={`text-xs ${dueDateStatus ? dueDateStatus.color : 'text-gray-600 dark:text-gray-400'}`}>
+              {dueDateStatus ? dueDateStatus.text : new Date(task.dueDate).toLocaleDateString()}
+            </span>
+          </div>
+        )}
+        
+        {/* Assigned user */}
+        {assignedUser && (
+          <div className="flex items-center gap-2">
+            <User className="h-3 w-3 text-gray-400" />
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-medium">
+                  {assignedUser.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <span className="text-xs text-gray-600 dark:text-gray-400">
+                {assignedUser.name}
+              </span>
+            </div>
+          </div>
+        )}
+        
+        {/* Priority badge */}
+        {task.priority > 0 && (
+          <div className="flex items-center gap-2">
+            <AlertCircle className={`h-3 w-3 ${getPriorityColor(task.priority).replace('bg-', 'text-')}`} />
+            <span className={`text-xs font-medium ${getPriorityColor(task.priority).replace('bg-', 'text-')}`}>
+              {getPriorityLabel(task.priority)} Priority
+            </span>
+          </div>
+        )}
+      </div>
+      
+      {/* Task footer */}
+      {!compactMode && (
+        <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+          <div className="flex items-center gap-3 text-gray-400">
+            {/* Comments count */}
+            {task.commentsCount > 0 && (
+              <div className="flex items-center gap-1">
+                <MessageSquare className="h-3 w-3" />
+                <span className="text-xs">{task.commentsCount}</span>
+              </div>
+            )}
+            
+            {/* Attachments count */}
+            {task.attachmentsCount > 0 && (
+              <div className="flex items-center gap-1">
+                <Paperclip className="h-3 w-3" />
+                <span className="text-xs">{task.attachmentsCount}</span>
+              </div>
+            )}
+          </div>
+          
+          {/* Created date */}
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {new Date(task.createdAt).toLocaleDateString()}
+          </span>
+        </div>
+      )}
+      
+      {/* Drag indicator */}
+      {isDragging && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute inset-0 bg-blue-500 bg-opacity-10 rounded-xl border-2 border-blue-400 border-dashed pointer-events-none"
+        />
+      )}
+    </motion.div>
+  );
+};
+
+export default EnhancedTaskCard;
