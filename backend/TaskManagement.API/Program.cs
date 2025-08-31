@@ -107,7 +107,7 @@ if (builder.Environment.IsProduction() || !string.IsNullOrEmpty(Environment.GetE
             return ConnectionMultiplexer.Connect(redisConnectionString);
         });
         
-        builder.Services.AddScoped<ICacheService, RedisCacheService>();
+        builder.Services.AddScoped<ICacheService, MemoryCacheService>();
         Log.Information("Redis caching configured successfully");
     }
     catch (Exception ex)
@@ -254,12 +254,27 @@ builder.Services.AddRateLimiting(options =>
     options.EnableGlobalRateLimit = true;
 });
 
+// Audit Logging
+builder.Services.AddAuditLogging(options =>
+{
+    options.CaptureRequestBody = true;
+    options.CaptureResponseBody = false;
+    options.CaptureHeaders = false;
+    options.AuditAllMethods = false;
+    options.MaxBodySizeToCapture = 1024 * 1024; // 1MB
+});
+
 // CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:3001")
+        policy.WithOrigins(
+            "http://localhost:3000", 
+            "http://localhost:3001", 
+            "http://taskmanagement-frontend:8080",
+            "http://frontend:8080"
+        )
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();

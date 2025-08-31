@@ -1,21 +1,22 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManagement.API.Data;
 using TaskManagement.API.Models;
+using TaskStatus = TaskManagement.API.Models.TaskStatus;
 
 namespace TaskManagement.API.Services
 {
     public interface IQueryOptimizationService
     {
-        Task<IEnumerable<Models.Task>> GetTasksWithOptimizedLoadingAsync(
+        Task<IEnumerable<TaskItem>> GetTasksWithOptimizedLoadingAsync(
             int? userId = null, 
             int? categoryId = null, 
             TaskStatus? status = null,
             int page = 1, 
             int pageSize = 20);
             
-        Task<Models.Task?> GetTaskWithDetailsAsync(int id);
+        Task<TaskItem?> GetTaskWithDetailsAsync(int id);
         Task<Dictionary<string, object>> GetDashboardStatsAsync();
-        Task<IEnumerable<Models.Task>> GetTasksForKanbanAsync();
+        Task<IEnumerable<TaskItem>> GetTasksForKanbanAsync();
     }
 
     public class QueryOptimizationService : IQueryOptimizationService
@@ -31,7 +32,7 @@ namespace TaskManagement.API.Services
             _logger = logger;
         }
 
-        public async Task<IEnumerable<Models.Task>> GetTasksWithOptimizedLoadingAsync(
+        public async Task<IEnumerable<TaskItem>> GetTasksWithOptimizedLoadingAsync(
             int? userId = null, 
             int? categoryId = null, 
             TaskStatus? status = null, 
@@ -39,13 +40,13 @@ namespace TaskManagement.API.Services
             int pageSize = 20)
         {
             var query = _context.Tasks
-                .Include(t => t.AssignedUser)
+                .Include(t => t.User)
                 .Include(t => t.Category)
                 .AsQueryable();
 
             // Apply filters
             if (userId.HasValue)
-                query = query.Where(t => t.AssignedUserId == userId.Value);
+                query = query.Where(t => t.UserId == userId.Value);
 
             if (categoryId.HasValue)
                 query = query.Where(t => t.CategoryId == categoryId.Value);
@@ -67,10 +68,10 @@ namespace TaskManagement.API.Services
             return tasks;
         }
 
-        public async Task<Models.Task?> GetTaskWithDetailsAsync(int id)
+        public async Task<TaskItem?> GetTaskWithDetailsAsync(int id)
         {
             var task = await _context.Tasks
-                .Include(t => t.AssignedUser)
+                .Include(t => t.User)
                 .Include(t => t.Category)
                 .Include(t => t.Comments.OrderByDescending(c => c.CreatedAt).Take(10))
                     .ThenInclude(c => c.User)
@@ -129,13 +130,13 @@ namespace TaskManagement.API.Services
             return result;
         }
 
-        public async Task<IEnumerable<Models.Task>> GetTasksForKanbanAsync()
+        public async Task<IEnumerable<TaskItem>> GetTasksForKanbanAsync()
         {
             // Optimized query for Kanban board - minimal data loading
             var tasks = await _context.Tasks
-                .Include(t => t.AssignedUser)
+                .Include(t => t.User)
                 .Include(t => t.Category)
-                .Select(t => new Models.Task
+                .Select(t => new TaskItem
                 {
                     Id = t.Id,
                     Title = t.Title,
@@ -143,16 +144,16 @@ namespace TaskManagement.API.Services
                     Status = t.Status,
                     Priority = t.Priority,
                     DueDate = t.DueDate,
-                    AssignedUserId = t.AssignedUserId,
+                    UserId = t.UserId,
                     CategoryId = t.CategoryId,
                     CreatedAt = t.CreatedAt,
                     UpdatedAt = t.UpdatedAt,
                     // Load only essential related data
-                    AssignedUser = t.AssignedUser != null ? new User
+                    User = t.User != null ? new User
                     {
-                        Id = t.AssignedUser.Id,
-                        Name = t.AssignedUser.Name,
-                        Email = t.AssignedUser.Email
+                        Id = t.User.Id,
+                        Name = t.User.Name,
+                        Email = t.User.Email
                     } : null,
                     Category = t.Category != null ? new Category
                     {

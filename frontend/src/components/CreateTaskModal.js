@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { X, Calendar, User, Tag, AlertCircle, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { tasksApi, usersApi, categoriesApi } from '../services/api';

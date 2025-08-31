@@ -43,10 +43,12 @@ namespace TaskManagement.API.Models
         // Foreign keys
         public int UserId { get; set; }
         public int? CategoryId { get; set; }
+        public int? AssignedUserId { get; set; }
         
         // Navigation properties
         public virtual User User { get; set; } = null!;
         public virtual Category? Category { get; set; }
+        public virtual User? AssignedUser { get; set; }
         public virtual ICollection<TaskComment> Comments { get; set; } = new List<TaskComment>();
         public virtual ICollection<TaskActivity> Activities { get; set; } = new List<TaskActivity>();
 

@@ -1,5 +1,5 @@
 
-import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Plus, Edit, Trash2, Mail, Phone, Building } from 'lucide-react';
 import toast from 'react-hot-toast';

@@ -60,7 +60,7 @@ namespace TaskManagement.API.Controllers
                     DueDate = t.DueDate,
                     CreatedAt = t.CreatedAt,
                     UpdatedAt = t.UpdatedAt,
-                    UserId = t.AssignedUserId,
+                    UserId = t.UserId,
                     UserName = t.AssignedUser?.Name,
                     CategoryId = t.CategoryId,
                     CategoryName = t.Category?.Name
@@ -101,7 +101,7 @@ namespace TaskManagement.API.Controllers
                     DueDate = task.DueDate,
                     CreatedAt = task.CreatedAt,
                     UpdatedAt = task.UpdatedAt,
-                    UserId = task.AssignedUserId,
+                    UserId = task.UserId,
                     UserName = task.AssignedUser?.Name,
                     CategoryId = task.CategoryId,
                     CategoryName = task.Category?.Name
@@ -136,7 +136,7 @@ namespace TaskManagement.API.Controllers
                     DueDate = t.DueDate,
                     CreatedAt = t.CreatedAt,
                     UpdatedAt = t.UpdatedAt,
-                    UserId = t.AssignedUserId,
+                    UserId = t.UserId,
                     UserName = t.AssignedUser?.Name,
                     CategoryId = t.CategoryId,
                     CategoryName = t.Category?.Name

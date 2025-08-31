@@ -6,13 +6,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all dependencies (including dev dependencies needed for build)
-# Use npm install to handle version conflicts gracefully
-RUN npm install
+# Use npm ci for faster, reliable, reproducible builds
+RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Build the app
+# Build the app with cross-platform environment variable
 RUN npm run build
 
 # Production stage

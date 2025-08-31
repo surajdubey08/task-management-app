@@ -5,4 +5,118 @@ namespace TaskManagement.API.Middleware
 {
     public class RateLimitingMiddleware
     {
-        private readonly RequestDelegate _next;\n        private readonly ILogger<RateLimitingMiddleware> _logger;\n        private readonly RateLimitOptions _options;\n        private static readonly ConcurrentDictionary<string, ClientStatistics> _clients = new();\n\n        public RateLimitingMiddleware(\n            RequestDelegate next,\n            ILogger<RateLimitingMiddleware> logger,\n            RateLimitOptions options)\n        {\n            _next = next;\n            _logger = logger;\n            _options = options;\n        }\n\n        public async Task InvokeAsync(HttpContext context)\n        {\n            var endpoint = context.GetEndpoint();\n            var rateLimitAttribute = endpoint?.Metadata.GetMetadata<RateLimitAttribute>();\n            \n            if (rateLimitAttribute != null)\n            {\n                var clientId = GetClientIdentifier(context);\n                var key = $\"{clientId}:{rateLimitAttribute.Resource}\";\n                \n                var clientStats = _clients.GetOrAdd(key, _ => new ClientStatistics());\n                \n                var now = DateTime.UtcNow;\n                var windowStart = now.AddMinutes(-rateLimitAttribute.WindowMinutes);\n                \n                // Remove old requests\n                clientStats.RequestTimes.RemoveWhere(time => time < windowStart);\n                \n                if (clientStats.RequestTimes.Count >= rateLimitAttribute.MaxRequests)\n                {\n                    _logger.LogWarning(\"Rate limit exceeded for client {ClientId} on resource {Resource}\", \n                        clientId, rateLimitAttribute.Resource);\n                    \n                    context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;\n                    context.Response.Headers.Add(\"Retry-After\", \"60\");\n                    await context.Response.WriteAsync(\"Rate limit exceeded. Try again later.\");\n                    return;\n                }\n                \n                clientStats.RequestTimes.Add(now);\n            }\n            \n            await _next(context);\n        }\n        \n        private string GetClientIdentifier(HttpContext context)\n        {\n            // Try to get user ID from JWT claims first\n            var userId = context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;\n            if (!string.IsNullOrEmpty(userId))\n            {\n                return $\"user:{userId}\";\n            }\n            \n            // Fall back to IP address\n            var forwardedFor = context.Request.Headers[\"X-Forwarded-For\"].FirstOrDefault();\n            if (!string.IsNullOrEmpty(forwardedFor))\n            {\n                return forwardedFor.Split(',')[0].Trim();\n            }\n            \n            return context.Connection.RemoteIpAddress?.ToString() ?? \"unknown\";\n        }\n    }\n\n    public class ClientStatistics\n    {\n        public HashSet<DateTime> RequestTimes { get; } = new();\n    }\n\n    public class RateLimitOptions\n    {\n        public int DefaultMaxRequests { get; set; } = 100;\n        public int DefaultWindowMinutes { get; set; } = 15;\n        public bool EnableGlobalRateLimit { get; set; } = true;\n    }\n\n    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]\n    public class RateLimitAttribute : Attribute\n    {\n        public string Resource { get; }\n        public int MaxRequests { get; }\n        public int WindowMinutes { get; }\n\n        public RateLimitAttribute(string resource, int maxRequests = 10, int windowMinutes = 1)\n        {\n            Resource = resource;\n            MaxRequests = maxRequests;\n            WindowMinutes = windowMinutes;\n        }\n    }\n\n    public static class RateLimitingExtensions\n    {\n        public static IServiceCollection AddRateLimiting(this IServiceCollection services, \n            Action<RateLimitOptions>? configureOptions = null)\n        {\n            var options = new RateLimitOptions();\n            configureOptions?.Invoke(options);\n            services.AddSingleton(options);\n            \n            return services;\n        }\n\n        public static IApplicationBuilder UseRateLimiting(this IApplicationBuilder app)\n        {\n            return app.UseMiddleware<RateLimitingMiddleware>();\n        }\n    }\n}
+        private readonly RequestDelegate _next;
+        private readonly ILogger<RateLimitingMiddleware> _logger;
+        private readonly RateLimitOptions _options;
+        private static readonly ConcurrentDictionary<string, ClientStatistics> _clients = new();
+
+        public RateLimitingMiddleware(
+            RequestDelegate next,
+            ILogger<RateLimitingMiddleware> logger,
+            RateLimitOptions options)
+        {
+            _next = next;
+            _logger = logger;
+            _options = options;
+        }
+
+        public async Task InvokeAsync(HttpContext context)
+        {
+            var endpoint = context.GetEndpoint();
+            var rateLimitAttribute = endpoint?.Metadata.GetMetadata<RateLimitAttribute>();
+            
+            if (rateLimitAttribute != null)
+            {
+                var clientId = GetClientIdentifier(context);
+                var key = $"{clientId}:{rateLimitAttribute.Resource}";
+                
+                var clientStats = _clients.GetOrAdd(key, _ => new ClientStatistics());
+                
+                var now = DateTime.UtcNow;
+                var windowStart = now.AddMinutes(-rateLimitAttribute.WindowMinutes);
+                
+                // Remove old requests
+                clientStats.RequestTimes.RemoveWhere(time => time < windowStart);
+                
+                if (clientStats.RequestTimes.Count >= rateLimitAttribute.MaxRequests)
+                {
+                    _logger.LogWarning("Rate limit exceeded for client {ClientId} on resource {Resource}", 
+                        clientId, rateLimitAttribute.Resource);
+                    
+                    context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
+                    context.Response.Headers.Add("Retry-After", "60");
+                    await context.Response.WriteAsync("Rate limit exceeded. Try again later.");
+                    return;
+                }
+                
+                clientStats.RequestTimes.Add(now);
+            }
+            
+            await _next(context);
+        }
+        
+        private string GetClientIdentifier(HttpContext context)
+        {
+            // Try to get user ID from JWT claims first
+            var userId = context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(userId))
+            {
+                return $"user:{userId}";
+            }
+            
+            // Fall back to IP address
+            var forwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(forwardedFor))
+            {
+                return forwardedFor.Split(',')[0].Trim();
+            }
+            
+            return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        }
+    }
+
+    public class ClientStatistics
+    {
+        public HashSet<DateTime> RequestTimes { get; } = new();
+    }
+
+    public class RateLimitOptions
+    {
+        public int DefaultMaxRequests { get; set; } = 100;
+        public int DefaultWindowMinutes { get; set; } = 15;
+        public bool EnableGlobalRateLimit { get; set; } = true;
+    }
+
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
+    public class RateLimitAttribute : Attribute
+    {
+        public string Resource { get; }
+        public int MaxRequests { get; }
+        public int WindowMinutes { get; }
+
+        public RateLimitAttribute(string resource, int maxRequests = 10, int windowMinutes = 1)
+        {
+            Resource = resource;
+            MaxRequests = maxRequests;
+            WindowMinutes = windowMinutes;
+        }
+    }
+
+    public static class RateLimitingExtensions
+    {
+        public static IServiceCollection AddRateLimiting(this IServiceCollection services, 
+            Action<RateLimitOptions>? configureOptions = null)
+        {
+            var options = new RateLimitOptions();
+            configureOptions?.Invoke(options);
+            services.AddSingleton(options);
+            
+            return services;
+        }
+
+        public static IApplicationBuilder UseRateLimiting(this IApplicationBuilder app)
+        {
+            return app.UseMiddleware<RateLimitingMiddleware>();
+        }
+    }
+}
