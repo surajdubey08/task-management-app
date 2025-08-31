@@ -3,6 +3,7 @@ using TaskManagement.API.DTOs;
 using TaskManagement.API.Models;
 using TaskManagement.API.Repositories;
 using TaskStatus = TaskManagement.API.Models.TaskStatus;
+using System.Security.Claims;
 
 namespace TaskManagement.API.Services
 {
@@ -12,23 +13,29 @@ namespace TaskManagement.API.Services
         private readonly IUserRepository _userRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly ITaskActivityService _activityService;
+        private readonly IAuditService _auditService;
         private readonly IMapper _mapper;
         private readonly ILogger<TaskService> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public TaskService(
             ITaskRepository taskRepository,
             IUserRepository userRepository,
             ICategoryRepository categoryRepository,
             ITaskActivityService activityService,
+            IAuditService auditService,
             IMapper mapper,
-            ILogger<TaskService> logger)
+            ILogger<TaskService> logger,
+            IHttpContextAccessor httpContextAccessor)
         {
             _taskRepository = taskRepository;
             _userRepository = userRepository;
             _categoryRepository = categoryRepository;
             _activityService = activityService;
+            _auditService = auditService;
             _mapper = mapper;
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<IEnumerable<TaskDto>> GetAllTasksAsync()
@@ -91,6 +98,19 @@ namespace TaskManagement.API.Services
                 createTaskDto.UserId,
                 ActivityType.Created,
                 "Task created");
+
+            // Audit logging
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId.HasValue)
+            {
+                await _auditService.LogAsync(
+                    AuditEntities.TASK,
+                    createdTask.Id,
+                    AuditActions.CREATE,
+                    currentUserId.Value,
+                    $"Created task '{createdTask.Title}'",
+                    newValues: createdTask);
+            }
 
             return _mapper.Map<TaskDto>(createdTask);
         }
@@ -189,6 +209,19 @@ namespace TaskManagement.API.Services
                 // Delete the task (cascade should handle comments and activities)
                 var result = await _taskRepository.DeleteAsync(id);
 
+                // Audit logging for deletion
+                var currentUserId = GetCurrentUserId();
+                if (currentUserId.HasValue && result)
+                {
+                    await _auditService.LogAsync(
+                        AuditEntities.TASK,
+                        id,
+                        AuditActions.DELETE,
+                        currentUserId.Value,
+                        $"Deleted task '{task.Title}'",
+                        oldValues: task);
+                }
+
                 if (result)
                 {
                     _logger.LogInformation("Successfully deleted task with ID: {TaskId}", id);
@@ -207,6 +240,10 @@ namespace TaskManagement.API.Services
             }
         }
 
-
+        private int? GetCurrentUserId()
+        {
+            var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(userIdClaim, out var userId) ? userId : null;
+        }
     }
 }

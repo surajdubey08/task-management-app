@@ -1,7 +1,24 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace TaskManagement.API.Models
 {
+    public enum UserRole
+    {
+        Admin = 0,
+        Manager = 1,
+        Member = 2,
+        Viewer = 3
+    }
+
+    public enum AccountStatus
+    {
+        Active = 0,
+        Inactive = 1,
+        Suspended = 2,
+        PendingVerification = 3
+    }
+
     public class User
     {
         public int Id { get; set; }
@@ -15,11 +32,28 @@ namespace TaskManagement.API.Models
         [StringLength(255)]
         public string Email { get; set; } = string.Empty;
         
+        [JsonIgnore]
+        [Required]
+        [StringLength(255)]
+        public string PasswordHash { get; set; } = string.Empty;
+        
         [StringLength(20)]
         public string? PhoneNumber { get; set; }
         
         [StringLength(100)]
         public string? Department { get; set; }
+        
+        public UserRole Role { get; set; } = UserRole.Member;
+        
+        public AccountStatus Status { get; set; } = AccountStatus.Active;
+        
+        public DateTime? LastLoginAt { get; set; }
+        
+        [JsonIgnore]
+        public string? RefreshToken { get; set; }
+        
+        [JsonIgnore]
+        public DateTime? RefreshTokenExpiryTime { get; set; }
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

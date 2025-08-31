@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Grid, List } from 'lucide-react';
+import { Plus, Grid, List, Zap } from 'lucide-react';
 import KanbanBoard from '../components/KanbanBoard';
 
 const KanbanView = () => {
@@ -18,6 +18,15 @@ const KanbanView = () => {
         </div>
         
         <div className="flex items-center gap-3">
+          {/* Enhanced Kanban Link */}
+          <Link
+            to="/kanban/enhanced"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white px-4 py-2 rounded-lg font-medium hover:from-purple-600 hover:to-pink-700 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg text-sm"
+          >
+            <Zap size={16} />
+            <span>Enhanced View</span>
+          </Link>
+          
           {/* View Toggle */}
           <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
             <Link

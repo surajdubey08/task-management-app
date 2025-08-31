@@ -92,7 +92,7 @@ const Layout = ({ children }) => {
             </div>
 
             {/* Mobile navigation */}
-            <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto" id="navigation" role="navigation" aria-label="Main navigation">
               {navigation.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -135,7 +135,7 @@ const Layout = ({ children }) => {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto">
+            <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto" id="navigation" role="navigation" aria-label="Main navigation">
               {navigation.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -165,7 +165,7 @@ const Layout = ({ children }) => {
       {/* Main content */}
       <div className={`min-h-screen transition-all duration-300 ${isDesktop ? 'ml-64' : 'ml-0'}`}>
         {/* Modern top header */}
-        <header className="sticky top-0 z-20 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
+        <header className="sticky top-0 z-20 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700" role="banner">
           <div className="flex h-16 items-center justify-between px-4 sm:px-6">
             {/* Left side */}
             <div className="flex items-center gap-4">
@@ -212,7 +212,7 @@ const Layout = ({ children }) => {
         </header>
 
         {/* Page content */}
-        <main className="p-6">
+        <main className="p-6" id="main-content" role="main" tabIndex={-1}>
           <div className="mx-auto max-w-7xl">
             {children}
           </div>

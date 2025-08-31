@@ -10,12 +10,18 @@ namespace TaskManagement.API.Services
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<UserService> _logger;
+        private readonly IPasswordService _passwordService;
 
-        public UserService(IUserRepository userRepository, IMapper mapper, ILogger<UserService> logger)
+        public UserService(
+            IUserRepository userRepository, 
+            IMapper mapper, 
+            ILogger<UserService> logger,
+            IPasswordService passwordService)
         {
             _userRepository = userRepository;
             _mapper = mapper;
             _logger = logger;
+            _passwordService = passwordService;
         }
 
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
@@ -50,6 +56,10 @@ namespace TaskManagement.API.Services
             }
 
             var user = _mapper.Map<User>(createUserDto);
+            user.PasswordHash = _passwordService.HashPassword(createUserDto.Password);
+            user.CreatedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.UtcNow;
+            
             var createdUser = await _userRepository.CreateAsync(user);
             return _mapper.Map<UserDto>(createdUser);
         }
@@ -71,6 +81,8 @@ namespace TaskManagement.API.Services
             }
 
             _mapper.Map(updateUserDto, existingUser);
+            existingUser.UpdatedAt = DateTime.UtcNow;
+            
             var updatedUser = await _userRepository.UpdateAsync(existingUser);
             return _mapper.Map<UserDto>(updatedUser);
         }
