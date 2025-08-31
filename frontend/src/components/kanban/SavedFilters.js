@@ -17,10 +17,10 @@ const SavedFilters = ({
 }) => {
   if (savedFilters.length === 0) {
     return (
-      <div className=\"text-center py-8 text-gray-500 dark:text-gray-400\">
-        <Bookmark className=\"h-8 w-8 mx-auto mb-2 opacity-50\" />
-        <p className=\"text-sm\">No saved filters yet</p>
-        <p className=\"text-xs\">Save your current filters to quickly access them later</p>
+      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+        <Bookmark className="h-8 w-8 mx-auto mb-2 opacity-50" />
+        <p className="text-sm">No saved filters yet</p>
+        <p className="text-xs">Save your current filters to quickly access them later</p>
       </div>
     );
   }

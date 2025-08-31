@@ -80,51 +80,51 @@ const DashboardWidget = ({
       {...props}
     >
       {/* Widget Header */}
-      <div className=\"flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700\">
-        <div className=\"flex items-center gap-3\">
-          <h3 className=\"text-lg font-semibold text-gray-900 dark:text-white truncate\">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-3">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
             {title}
           </h3>
           {isLoading && (
-            <RefreshCw className=\"h-4 w-4 text-blue-500 animate-spin\" />
+            <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />
           )}
         </div>
 
-        <div className=\"flex items-center gap-2\">
+        <div className="flex items-center gap-2">
           {onRefresh && (
             <button
               onClick={handleRefresh}
               disabled={isLoading}
-              className=\"p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors\"
-              title=\"Refresh\"
+              className="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              title="Refresh"
             >
               <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} />
             </button>
           )}
 
-          <div className=\"relative\">
+          <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className=\"p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors\"
+              className="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
-              <MoreHorizontal className=\"h-4 w-4\" />
+              <MoreHorizontal className="h-4 w-4" />
             </button>
 
             {showMenu && (
-              <div className=\"absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10\">
+              <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10">
                 {canResize && (
                   <button
                     onClick={handleToggleExpand}
-                    className=\"w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2\"
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                   >
                     {isExpanded ? (
                       <>
-                        <Minimize2 className=\"h-4 w-4\" />
+                        <Minimize2 className="h-4 w-4" />
                         Minimize
                       </>
                     ) : (
                       <>
-                        <Maximize2 className=\"h-4 w-4\" />
+                        <Maximize2 className="h-4 w-4" />
                         Expand
                       </>
                     )}
@@ -134,9 +134,9 @@ const DashboardWidget = ({
                 {onSettings && (
                   <button
                     onClick={handleSettings}
-                    className=\"w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2\"
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                   >
-                    <Settings className=\"h-4 w-4\" />
+                    <Settings className="h-4 w-4" />
                     Settings
                   </button>
                 )}
@@ -144,21 +144,21 @@ const DashboardWidget = ({
                 {onExport && (
                   <button
                     onClick={handleExport}
-                    className=\"w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2\"
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                   >
-                    <Download className=\"h-4 w-4\" />
+                    <Download className="h-4 w-4" />
                     Export
                   </button>
                 )}
 
                 {canRemove && (
                   <>
-                    <div className=\"border-t border-gray-200 dark:border-gray-700 my-1\" />
+                    <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
                     <button
                       onClick={handleRemove}
-                      className=\"w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2\"
+                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
                     >
-                      <X className=\"h-4 w-4\" />
+                      <X className="h-4 w-4" />
                       Remove
                     </button>
                   </>
@@ -170,16 +170,16 @@ const DashboardWidget = ({
       </div>
 
       {/* Widget Content */}
-      <div className=\"p-4 h-full overflow-auto\">
+      <div className="p-4 h-full overflow-auto">
         {error ? (
-          <div className=\"flex items-center justify-center h-full text-center\">
-            <div className=\"text-red-500 dark:text-red-400\">
-              <p className=\"font-medium\">Error loading data</p>
-              <p className=\"text-sm mt-1\">{error}</p>
+          <div className="flex items-center justify-center h-full text-center">
+            <div className="text-red-500 dark:text-red-400">
+              <p className="font-medium">Error loading data</p>
+              <p className="text-sm mt-1">{error}</p>
               {onRefresh && (
                 <button
                   onClick={handleRefresh}
-                  className=\"mt-2 px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors\"
+                  className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
                 >
                   Try Again
                 </button>
@@ -193,15 +193,15 @@ const DashboardWidget = ({
 
       {/* Resize Handle */}
       {canResize && (
-        <div className=\"absolute bottom-2 right-2 w-3 h-3 opacity-0 group-hover:opacity-50 hover:opacity-100 transition-opacity\">
-          <div className=\"w-full h-full bg-gray-400 dark:bg-gray-500 rounded-tl-lg cursor-se-resize\" />
+        <div className="absolute bottom-2 right-2 w-3 h-3 opacity-0 group-hover:opacity-50 hover:opacity-100 transition-opacity">
+          <div className="w-full h-full bg-gray-400 dark:bg-gray-500 rounded-tl-lg cursor-se-resize" />
         </div>
       )}
 
       {/* Close overlay for expanded mode */}
       {isExpanded && (
         <div 
-          className=\"fixed inset-0 bg-black/50 backdrop-blur-sm -z-10\"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm -z-10"
           onClick={handleToggleExpand}
         />
       )}
@@ -209,4 +209,4 @@ const DashboardWidget = ({
   );
 };
 
-export default DashboardWidget;"
+export default DashboardWidget;

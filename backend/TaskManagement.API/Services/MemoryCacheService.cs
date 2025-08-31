@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
-using StackExchange.Redis;
 
 namespace TaskManagement.API.Services
 {
@@ -34,30 +33,29 @@ namespace TaskManagement.API.Services
     }
 
     /// <summary>
-    /// Memory and Redis-based cache service implementation
+    /// Memory and distributed cache service implementation
     /// </summary>
     public class MemoryCacheService : ICacheService
     {
         private readonly IMemoryCache _memoryCache;
         private readonly IDistributedCache _distributedCache;
-        private readonly IDatabase? _redisDatabase;
         private readonly ILogger<MemoryCacheService> _logger;
         private readonly JsonSerializerOptions _jsonOptions;
         private readonly SemaphoreSlim _semaphore;
         private readonly CacheStatistics _statistics;
+        private readonly Dictionary<string, HashSet<string>> _taggedKeys;
 
         public MemoryCacheService(
             IMemoryCache memoryCache,
             IDistributedCache distributedCache,
-            IConnectionMultiplexer? connectionMultiplexer,
             ILogger<MemoryCacheService> logger)
         {
             _memoryCache = memoryCache;
             _distributedCache = distributedCache;
-            _redisDatabase = connectionMultiplexer?.GetDatabase();
             _logger = logger;
             _semaphore = new SemaphoreSlim(1, 1);
             _statistics = new CacheStatistics();
+            _taggedKeys = new Dictionary<string, HashSet<string>>();
             
             _jsonOptions = new JsonSerializerOptions
             {
@@ -172,16 +170,10 @@ namespace TaskManagement.API.Services
 
             try
             {
-                if (_redisDatabase != null)
-                {
-                    var server = _redisDatabase.Multiplexer.GetServer(_redisDatabase.Multiplexer.GetEndPoints()[0]);
-                    var keys = server.Keys(pattern: pattern);
-                    
-                    var tasks = keys.Select(key => _redisDatabase.KeyDeleteAsync(key)).ToArray();
-                    await Task.WhenAll(tasks);
-                    
-                    _logger.LogDebug("Removed {Count} keys matching pattern: {Pattern}", tasks.Length, pattern);
-                }
+                // For in-memory only implementation, we'll use a simplified approach
+                // This is a basic implementation - in production you might want a more sophisticated pattern matching
+                _logger.LogWarning("RemoveByPatternAsync is not fully implemented for in-memory cache only. Pattern: {Pattern}", pattern);
+                await Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -216,20 +208,14 @@ namespace TaskManagement.API.Services
         {
             try
             {
-                // Clear memory cache (this is tricky with IMemoryCache, so we'll create a new instance)
+                // Clear memory cache (this is tricky with IMemoryCache, so we'll use a workaround)
                 if (_memoryCache is MemoryCache mc)
                 {
-                    mc.Dispose();
-                }
-
-                // Clear distributed cache (Redis)
-                if (_redisDatabase != null)
-                {
-                    var server = _redisDatabase.Multiplexer.GetServer(_redisDatabase.Multiplexer.GetEndPoints()[0]);
-                    await server.FlushDatabaseAsync();
+                    mc.Compact(1.0); // Remove all entries
                 }
 
                 _logger.LogInformation("Cache cleared successfully");
+                await Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -312,10 +298,21 @@ namespace TaskManagement.API.Services
 
             try
             {
-                // For simplicity, we'll use pattern matching to invalidate by tag
-                // In a real implementation, you might maintain a tag-to-keys mapping
-                var pattern = $"*{tag}*";
-                await RemoveByPatternAsync(pattern, cancellationToken);
+                await _semaphore.WaitAsync(cancellationToken);
+                try
+                {
+                    // Remove keys associated with this tag
+                    if (_taggedKeys.TryGetValue(tag, out var keys))
+                    {
+                        var tasks = keys.Select(key => RemoveAsync(key, cancellationToken));
+                        await Task.WhenAll(tasks);
+                        _taggedKeys.Remove(tag);
+                    }
+                }
+                finally
+                {
+                    _semaphore.Release();
+                }
                 
                 _logger.LogDebug("Invalidated cache entries for tag: {Tag}", tag);
             }

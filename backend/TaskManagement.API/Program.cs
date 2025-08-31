@@ -118,7 +118,8 @@ if (builder.Environment.IsProduction() || !string.IsNullOrEmpty(Environment.GetE
 }
 else
 {
-    // Development: Use in-memory caching
+    // Development: Use in-memory distributed cache and memory cache service
+    builder.Services.AddDistributedMemoryCache();
     builder.Services.AddSingleton<ICacheService, MemoryCacheService>();
     Log.Information("Using in-memory caching for development");
 }
@@ -301,9 +302,6 @@ app.UseSecurityHeaders();
 
 // Rate limiting
 app.UseRateLimiting();
-
-app.UseResponseCompression();
-app.UseResponseCaching();
 
 app.UseHttpsRedirection();
 

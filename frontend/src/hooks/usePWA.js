@@ -408,4 +408,4 @@ export const pwaUtils = {
       });
     }
   }
-};"
+};

@@ -4,14 +4,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import CommandPalette from './components/CommandPalette';
 import LoadingSpinner from './components/LoadingSpinner';
-import { SkipLink, LiveRegion } from './hooks/useAccessibility';
-import { useScreenReader, useServiceWorker } from './hooks/useAccessibility';
-import { usePWA } from './hooks/usePWA';
+import { SkipLink, LiveRegion, useScreenReader } from './hooks/useAccessibility';
+import { useServiceWorker, usePWA } from './hooks/usePWA';
 // Authentication pages
 import Login from './pages/Login';
 import Register from './pages/Register';

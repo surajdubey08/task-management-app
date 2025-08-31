@@ -308,7 +308,7 @@ export const a11yUtils = {
 // Component for screen reader only content
 export const ScreenReaderOnly = ({ children, as: Component = 'div', ...props }) => {
   return (
-    <Component className=\"sr-only\" {...props}>
+    <Component className={`sr-only`} {...props}>
       {children}
     </Component>
   );
@@ -319,7 +319,7 @@ export const SkipLink = ({ href, children }) => {
   return (
     <a
       href={href}
-      className=\"sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md font-medium z-50 focus:z-50\"
+      className={`sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md font-medium z-50 focus:z-50`}
     >
       {children}
     </a>
@@ -331,18 +331,18 @@ export const LiveRegion = ({ announcements }) => {
   return (
     <>
       <div 
-        aria-live=\"polite\" 
-        aria-atomic=\"true\" 
-        className=\"sr-only\"
+        aria-live={`polite`} 
+        aria-atomic={`true`} 
+        className={`sr-only`}
       >
         {announcements.filter(a => a.priority === 'polite').map(a => (
           <div key={a.id}>{a.message}</div>
         ))}
       </div>
       <div 
-        aria-live=\"assertive\" 
-        aria-atomic=\"true\" 
-        className=\"sr-only\"
+        aria-live={`assertive`} 
+        aria-atomic={`true`} 
+        className={`sr-only`}
       >
         {announcements.filter(a => a.priority === 'assertive').map(a => (
           <div key={a.id}>{a.message}</div>
@@ -350,4 +350,4 @@ export const LiveRegion = ({ announcements }) => {
       </div>
     </>
   );
-};"
+};

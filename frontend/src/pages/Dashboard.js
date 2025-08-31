@@ -87,6 +87,27 @@ const Dashboard = () => {
     localStorage.setItem('dashboardLayout', JSON.stringify(newLayout));
   };
 
+  // Performance analytics - MUST be before early returns
+  const performanceMetrics = React.useMemo(() => {
+    if (!tasks || tasks.length === 0) {
+      return {
+        completionRate: 0,
+        productivityScore: 0,
+        teamMetrics: {},
+        weeklyTrends: [],
+        insights: []
+      };
+    }
+    
+    return {
+      completionRate: PerformanceAnalytics.calculateTaskCompletionRate(tasks),
+      productivityScore: PerformanceAnalytics.calculateProductivityScore(tasks),
+      teamMetrics: PerformanceAnalytics.getTeamProductivityMetrics(tasks, users || []),
+      weeklyTrends: PerformanceAnalytics.getWeeklyTrends(tasks),
+      insights: PerformanceAnalytics.generateInsights(tasks)
+    };
+  }, [tasks, users]);
+
   if (tasksLoading || usersLoading || categoriesLoading) {
     return <LoadingSpinner message="Loading dashboard..." />;
   }
@@ -102,19 +123,6 @@ const Dashboard = () => {
     inProgress: tasks?.filter(t => t.status === 1).length || 0,
     completed: tasks?.filter(t => t.status === 2).length || 0,
   };
-
-  // Performance analytics
-  const performanceMetrics = React.useMemo(() => {
-    if (!tasks || tasks.length === 0) return {};
-    
-    return {
-      completionRate: PerformanceAnalytics.calculateTaskCompletionRate(tasks),
-      productivityScore: PerformanceAnalytics.calculateProductivityScore(tasks),
-      teamMetrics: PerformanceAnalytics.getTeamProductivityMetrics(tasks, users || []),
-      weeklyTrends: PerformanceAnalytics.getWeeklyTrends(tasks),
-      insights: PerformanceAnalytics.generateInsights(tasks)
-    };
-  }, [tasks, users]);
 
   const stats = [
     {
