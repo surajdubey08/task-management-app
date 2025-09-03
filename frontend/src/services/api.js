@@ -1,7 +1,11 @@
 import axios from 'axios';
 
 // API configuration with enhanced authentication support
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 
+  (process.env.NODE_ENV === 'development' 
+    ? 'http://localhost:5000/api'  // Development: direct to backend
+    : '/api'  // Production: through nginx proxy
+  );
 
 // Create axios instance
 const api = axios.create({

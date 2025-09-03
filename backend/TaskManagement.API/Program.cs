@@ -321,11 +321,11 @@ app.MapHub<TaskManagementHub>("/hub/taskmanagement");
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
-// Ensure database is created
+// Ensure database is created and seeded
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<TaskManagementContext>();
-    context.Database.EnsureCreated();
+    await DbSeeder.SeedAsync(context, scope.ServiceProvider);
 }
 
 app.Run();
