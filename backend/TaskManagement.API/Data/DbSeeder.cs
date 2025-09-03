@@ -23,7 +23,7 @@ namespace TaskManagement.API.Data
             {
                 Name = "System Administrator",
                 Email = "admin@taskflow.com",
-                PasswordHash = passwordService.HashPassword("admin123"),
+                PasswordHash = passwordService.HashPassword("Admin123"),
                 Role = UserRole.Admin,
                 Status = AccountStatus.Active,
                 Department = "IT",
@@ -36,7 +36,7 @@ namespace TaskManagement.API.Data
             {
                 Name = "Demo User",
                 Email = "demo@taskflow.com",
-                PasswordHash = passwordService.HashPassword("demo123"),
+                PasswordHash = passwordService.HashPassword("Demo123"),
                 Role = UserRole.Member,
                 Status = AccountStatus.Active,
                 Department = "Operations",
@@ -158,7 +158,7 @@ namespace TaskManagement.API.Data
             context.Tasks.AddRange(sampleTasks);
             await context.SaveChangesAsync();
 
-            Console.WriteLine("Database seeded successfully with admin user: admin@taskflow.com / admin123");
+            Console.WriteLine("Database seeded successfully with admin user: admin@taskflow.com / Admin123");
         }
     }
 }

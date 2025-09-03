@@ -30,7 +30,7 @@ namespace TaskManagement.API.Services
             var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT Secret Key not configured");
             var issuer = jwtSettings["Issuer"] ?? "TaskFlow";
             var audience = jwtSettings["Audience"] ?? "TaskFlow";
-            var expiryMinutes = int.Parse(jwtSettings["AccessTokenExpiryMinutes"] ?? "60");
+            var expiryMinutes = int.Parse(jwtSettings["ExpirationMinutes"] ?? "60");
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

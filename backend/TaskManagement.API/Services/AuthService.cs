@@ -73,7 +73,7 @@ namespace TaskManagement.API.Services
                 {
                     AccessToken = accessToken,
                     RefreshToken = refreshToken,
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["AccessTokenExpiryMinutes"] ?? "60")),
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["ExpirationMinutes"] ?? "60")),
                     User = _mapper.Map<UserDto>(user)
                 };
             }
@@ -127,7 +127,7 @@ namespace TaskManagement.API.Services
                 {
                     AccessToken = accessToken,
                     RefreshToken = refreshToken,
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["AccessTokenExpiryMinutes"] ?? "60")),
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["ExpirationMinutes"] ?? "60")),
                     User = _mapper.Map<UserDto>(createdUser)
                 };
             }
@@ -176,7 +176,7 @@ namespace TaskManagement.API.Services
                 {
                     AccessToken = newAccessToken,
                     RefreshToken = newRefreshToken,
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["AccessTokenExpiryMinutes"] ?? "60")),
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["ExpirationMinutes"] ?? "60")),
                     User = _mapper.Map<UserDto>(user)
                 };
             }

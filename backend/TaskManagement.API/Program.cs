@@ -137,6 +137,15 @@ builder.Services.AddDbContext<TaskManagementContext>(options =>
             npgsqlOptions.CommandTimeout(30);
         });
     }
+    else if (databaseProvider.Equals("SQLServer", StringComparison.OrdinalIgnoreCase))
+    {
+        options.UseSqlServer(connectionString, sqlOptions =>
+        {
+            sqlOptions.CommandTimeout(30);
+            // Enable connection pooling and query splitting
+            sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+        });
+    }
     else
     {
         options.UseSqlite(connectionString, sqliteOptions =>
@@ -151,7 +160,6 @@ builder.Services.AddDbContext<TaskManagementContext>(options =>
         options.EnableSensitiveDataLogging(false);
         options.EnableDetailedErrors(false);
         options.EnableServiceProviderCaching();
-        options.EnableSensitiveDataLogging(false);
     }
     else
     {
@@ -313,6 +321,28 @@ app.UseAuthorization();
 // Audit logging (after authentication to capture user info)
 app.UseAuditLogging();
 
+// Ensure database is created and migrated
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<TaskManagementContext>();
+    try
+    {
+        // Apply any pending migrations
+        context.Database.Migrate();
+        Log.Information("Database migration completed successfully");
+        
+        // Seed the database if needed
+        var seeder = scope.ServiceProvider.GetRequiredService<DbSeeder>();
+        seeder.SeedAsync().Wait();
+        Log.Information("Database seeding completed successfully");
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "An error occurred while migrating or seeding the database");
+        throw;
+    }
+}
+
 app.MapControllers();
 
 // Map SignalR Hub
@@ -320,12 +350,5 @@ app.MapHub<TaskManagementHub>("/hub/taskmanagement");
 
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
-
-// Ensure database is created and seeded
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<TaskManagementContext>();
-    await DbSeeder.SeedAsync(context, scope.ServiceProvider);
-}
 
 app.Run();

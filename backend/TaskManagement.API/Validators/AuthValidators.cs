@@ -37,8 +37,8 @@ namespace TaskManagement.API.Validators
                 .NotEmpty().WithMessage("Password is required.")
                 .MinimumLength(6).WithMessage("Password must be at least 6 characters long.")
                 .MaximumLength(100).WithMessage("Password must not exceed 100 characters.")
-                .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$")
-                .WithMessage("Password must contain at least one lowercase letter, one uppercase letter, and one digit.");
+                .Matches(@"^(?=.*[a-z])(?=.*\d).+$")
+                .WithMessage("Password must contain at least one lowercase letter and one digit.");
 
             RuleFor(x => x.ConfirmPassword)
                 .NotEmpty().WithMessage("Password confirmation is required.")
@@ -65,8 +65,8 @@ namespace TaskManagement.API.Validators
                 .NotEmpty().WithMessage("New password is required.")
                 .MinimumLength(6).WithMessage("New password must be at least 6 characters long.")
                 .MaximumLength(100).WithMessage("New password must not exceed 100 characters.")
-                .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$")
-                .WithMessage("New password must contain at least one lowercase letter, one uppercase letter, and one digit.")
+                .Matches(@"^(?=.*[a-z])(?=.*\d).+$")
+                .WithMessage("New password must contain at least one lowercase letter and one digit.")
                 .NotEqual(x => x.CurrentPassword).WithMessage("New password must be different from current password.");
 
             RuleFor(x => x.ConfirmNewPassword)
@@ -101,8 +101,8 @@ namespace TaskManagement.API.Validators
                 .NotEmpty().WithMessage("New password is required.")
                 .MinimumLength(6).WithMessage("New password must be at least 6 characters long.")
                 .MaximumLength(100).WithMessage("New password must not exceed 100 characters.")
-                .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$")
-                .WithMessage("New password must contain at least one lowercase letter, one uppercase letter, and one digit.");
+                .Matches(@"^(?=.*[a-z])(?=.*\d).+$")
+                .WithMessage("New password must contain at least one lowercase letter and one digit.");
 
             RuleFor(x => x.ConfirmNewPassword)
                 .NotEmpty().WithMessage("New password confirmation is required.")
